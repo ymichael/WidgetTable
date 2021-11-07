@@ -1,38 +1,17 @@
 import * as React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import CustomSelect from "./CustomSelect";
-import CustomMultiSelectTextInput from "./CustomMultiSelectTextInput";
+import CustomSelect from "./input/CustomSelect";
+import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";
 import * as yup from "yup";
 import "./App.css";
 
-enum FieldType {
-  TEXT_SINGLE_LINE = "TEXT_SINGLE_LINE",
-  TEXT_MULTI_LINE = "TEXT_MULTI_LINE",
-  CHECKBOX = "CHECKBOX",
-  SELECT_SINGLE = "SELECT_SINGLE",
-  SELECT_MULTIPLE = "SELECT_MULTIPLE",
-  URL = "URL",
-}
-
-const FIELD_TYPE_READABLE: Record<FieldType, string> = {
-  TEXT_SINGLE_LINE: "Single line Text",
-  TEXT_MULTI_LINE: "Multi-line Text",
-  URL: "URL",
-  CHECKBOX: "Checkbox",
-  SELECT_SINGLE: "Single select",
-  SELECT_MULTIPLE: "Multi select",
-};
-
-const FIELD_TYPE_DESCRIPTION: Record<FieldType, string> = {
-  TEXT_SINGLE_LINE: "Best for short text that fits on a single line.",
-  TEXT_MULTI_LINE: "Ideal for long form text that spans multiple lines.",
-  URL: "Use this if you intend to store a single URL in this field.",
-  CHECKBOX: "Useful for true / false values.",
-  SELECT_SINGLE:
-    "Ideal when you want to ensure that one of a preset list of options is chosen.",
-  SELECT_MULTIPLE:
-    "Similar to single select field but allows for multiple options to be chosen.",
-};
+import { assertUnreachable } from "./utils";
+import {
+  TableField,
+  FieldType,
+  FIELD_TYPE_READABLE,
+  FIELD_TYPE_DESCRIPTION,
+} from "./constants";
 
 const fieldSchema = yup.object().shape({
   fieldName: yup.string().required("Please specify a field name."),
@@ -50,9 +29,9 @@ const fieldSchema = yup.object().shape({
   }),
 });
 
-function assertUnreachable(x: never): never {
-  throw new Error("Didn't expect to get here");
-}
+// function Row({ children }: { children: any }) {
+//   return <div style={{ display: flex }}>{children}</div>;
+// }
 
 function TableFieldSchemaForm() {
   return (
@@ -120,25 +99,7 @@ function TableFieldSchemaForm() {
   );
 }
 
-type TableFieldCommon = {
-  fieldName: string;
-  fieldType:
-    | FieldType.TEXT_SINGLE_LINE
-    | FieldType.TEXT_MULTI_LINE
-    | FieldType.CHECKBOX
-    | FieldType.URL;
-};
-type TableFieldSelect = {
-  fieldName: string;
-  fieldType: FieldType.SELECT_SINGLE | FieldType.SELECT_MULTIPLE;
-  fieldOptions: string[];
-};
-
-type TableField = TableFieldCommon | TableFieldSelect;
-
-type TableFields = TableField[];
-
-const TEST_TABLE: TableFields = [
+const TEST_TABLE: TableField[] = [
   { fieldName: "Title", fieldType: FieldType.TEXT_SINGLE_LINE },
   { fieldName: "Description", fieldType: FieldType.TEXT_MULTI_LINE },
   { fieldName: "Published", fieldType: FieldType.CHECKBOX },
@@ -154,7 +115,7 @@ const TEST_TABLE: TableFields = [
   },
 ];
 
-function TableRowDataForm({ tableSchema }: { tableSchema: TableFields }) {
+function TableRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
   return (
     <div>
       <h1>Table Row Data Form</h1>

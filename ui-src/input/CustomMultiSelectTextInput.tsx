@@ -1,4 +1,9 @@
-// Adapted from https://react-select.com/creatable
+/**
+ * An input element that works as a multi-select w/o a dropdown.
+ * This is useful for collecting lists of strings.
+ *
+ * Adapted from https://react-select.com/creatable
+ */
 import * as React from "react";
 import { useState, useEffect } from "react";
 
