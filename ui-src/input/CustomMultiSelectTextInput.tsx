@@ -59,6 +59,14 @@ export default function CustomMultiSelectTextInput({
       }}
       placeholder="Type something and press enter..."
       value={value}
+      theme={(theme) => ({
+        ...theme,
+        colors: {
+          ...theme.colors,
+          primary25: "#e9ccff",
+          primary: "#A83FFB",
+        },
+      })}
     />
   );
 }

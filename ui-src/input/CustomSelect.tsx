@@ -53,6 +53,14 @@ export default function CustomSelect({
       placeholder={placeholder}
       options={options}
       isMulti={isMulti}
+      theme={(theme) => ({
+        ...theme,
+        colors: {
+          ...theme.colors,
+          primary25: "#e9ccff",
+          primary: "#A83FFB",
+        },
+      })}
     />
   );
 }

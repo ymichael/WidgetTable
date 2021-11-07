@@ -1,11 +1,13 @@
 import * as React from "react";
+import { useState } from "react";
+import cx from "classnames";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import CustomSelect from "./input/CustomSelect";
 import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";
 import * as yup from "yup";
 import styles from "./App.module.css";
 
-import { assertUnreachable } from "./utils";
+import { assertUnreachable, genId } from "./utils";
 import {
   TableField,
   FieldType,
@@ -42,13 +44,25 @@ function FieldRow({
   fieldType?: string;
   children?: any;
 }) {
+  const [id] = useState(genId);
   return (
-    <div className={styles.FieldRow}>
-      <label htmlFor={fieldName}>{fieldLabel}</label>
+    <div
+      className={cx(
+        styles.FieldRow,
+        fieldType === "checkbox" && styles.FieldRowCheckbox
+      )}
+    >
+      <label htmlFor={id}>{fieldLabel}</label>
       {children ? (
         children
       ) : (
-        <Field name={fieldName} type={fieldType} as={fieldAs} />
+        <Field
+          id={id}
+          name={fieldName}
+          type={fieldType}
+          as={fieldAs}
+          autoComplete="off"
+        />
       )}
       <div className={styles.FieldError}>
         <ErrorMessage name={fieldName} />
@@ -112,7 +126,9 @@ function TableFieldSchemaForm() {
                   />
                 </FieldRow>
               )}
-              <button type="submit">Submit</button>
+              <div className={styles.FormButton}>
+                <button type="submit">Submit</button>
+              </div>
             </Form>
           );
         }}
@@ -207,7 +223,7 @@ function TableFieldRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
                     assertUnreachable(fieldType);
                 }
               })}
-              <div>
+              <div className={styles.FormButton}>
                 <button type="submit">Submit</button>
               </div>
             </Form>
