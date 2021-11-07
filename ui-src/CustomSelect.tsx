@@ -17,14 +17,14 @@ interface CustomSelectProps extends FieldProps {
   placeholder?: string;
 }
 
-export const CustomSelect = ({
+export default function CustomSelect({
   className,
   placeholder,
   field,
   form,
   options,
   isMulti = false,
-}: CustomSelectProps) => {
+}: CustomSelectProps) {
   const onChange = (option: Option | Option[]) => {
     form.setFieldValue(
       field.name,
@@ -55,6 +55,4 @@ export const CustomSelect = ({
       isMulti={isMulti}
     />
   );
-};
-
-export default CustomSelect;
+}

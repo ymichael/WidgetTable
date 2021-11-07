@@ -1,7 +1,7 @@
 import * as React from "react";
-import Select from "react-select";
-import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import CustomSelect from "./CustomSelect";
+import CustomMultiSelectTextInput from "./CustomMultiSelectTextInput";
 import * as yup from "yup";
 import "./App.css";
 
@@ -90,48 +90,20 @@ function TableFieldSchemaForm() {
                     };
                   })}
                 />
-
+                {formik.values.fieldType && (
+                  <p>{FIELD_TYPE_DESCRIPTION[formik.values.fieldType]}</p>
+                )}
                 <ErrorMessage name="fieldType" />
               </div>
               {(formik.values.fieldType === FieldType.SELECT_SINGLE ||
                 formik.values.fieldType === FieldType.SELECT_MULTIPLE) && (
                 <div>
                   <b>Field Options:</b>
-                  <FieldArray
+                  <Field
                     name="fieldOptions"
-                    render={(arrayHelpers) => {
-                      return (
-                        <div>
-                          {formik.values.fieldOptions.length > 0 ? (
-                            formik.values.fieldOptions.map((_, index) => (
-                              <div key={index}>
-                                <Field name={`fieldOptions.${index}`} />
-                                <button
-                                  type="button"
-                                  onClick={() => arrayHelpers.remove(index)}
-                                >
-                                  -
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    arrayHelpers.insert(index + 1, "")
-                                  }
-                                >
-                                  +
-                                </button>
-                              </div>
-                            ))
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => arrayHelpers.push("")}
-                            >
-                              Add an option
-                            </button>
-                          )}
-                        </div>
-                      );
+                    component={CustomMultiSelectTextInput}
+                    onChange={(value: string[]) => {
+                      formik.setFieldValue("fieldOptions", value);
                     }}
                   />
                   <ErrorMessage name="fieldOptions" />
