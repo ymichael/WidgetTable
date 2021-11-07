@@ -3,7 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import CustomSelect from "./input/CustomSelect";
 import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";
 import * as yup from "yup";
-import "./App.css";
+import styles from "./App.module.css";
 
 import { assertUnreachable } from "./utils";
 import {
@@ -29,9 +29,33 @@ const fieldSchema = yup.object().shape({
   }),
 });
 
-// function Row({ children }: { children: any }) {
-//   return <div style={{ display: flex }}>{children}</div>;
-// }
+function FieldRow({
+  fieldName,
+  fieldLabel,
+  children,
+  fieldAs = "input",
+  fieldType = "text",
+}: {
+  fieldName: string;
+  fieldLabel: string;
+  fieldAs?: string;
+  fieldType?: string;
+  children?: any;
+}) {
+  return (
+    <div className={styles.FieldRow}>
+      <label htmlFor={fieldName}>{fieldLabel}</label>
+      {children ? (
+        children
+      ) : (
+        <Field name={fieldName} type={fieldType} as={fieldAs} />
+      )}
+      <div className={styles.FieldError}>
+        <ErrorMessage name={fieldName} />
+      </div>
+    </div>
+  );
+}
 
 function TableFieldSchemaForm() {
   return (
@@ -52,13 +76,8 @@ function TableFieldSchemaForm() {
         {(formik) => {
           return (
             <Form onSubmit={formik.handleSubmit}>
-              <div>
-                <label htmlFor="fieldName">Field Name</label>
-                <Field name="fieldName" type="text" />
-                <ErrorMessage name="fieldName" />
-              </div>
-              <div>
-                <label htmlFor="fieldType">Field Type</label>
+              <FieldRow fieldName="fieldName" fieldLabel="Field Name" />
+              <FieldRow fieldName="fieldType" fieldLabel="Field Type">
                 <Field
                   name="fieldType"
                   component={CustomSelect}
@@ -70,14 +89,20 @@ function TableFieldSchemaForm() {
                   })}
                 />
                 {formik.values.fieldType && (
-                  <p>{FIELD_TYPE_DESCRIPTION[formik.values.fieldType]}</p>
+                  <div
+                    style={{
+                      padding: "2px",
+                      fontSize: "12px",
+                      color: "#666666",
+                    }}
+                  >
+                    {FIELD_TYPE_DESCRIPTION[formik.values.fieldType]}
+                  </div>
                 )}
-                <ErrorMessage name="fieldType" />
-              </div>
+              </FieldRow>
               {(formik.values.fieldType === FieldType.SELECT_SINGLE ||
                 formik.values.fieldType === FieldType.SELECT_MULTIPLE) && (
-                <div>
-                  <b>Field Options:</b>
+                <FieldRow fieldName="fieldOptions" fieldLabel="Field Options">
                   <Field
                     name="fieldOptions"
                     component={CustomMultiSelectTextInput}
@@ -85,12 +110,9 @@ function TableFieldSchemaForm() {
                       formik.setFieldValue("fieldOptions", value);
                     }}
                   />
-                  <ErrorMessage name="fieldOptions" />
-                </div>
+                </FieldRow>
               )}
-              <div>
-                <button type="submit">Submit</button>
-              </div>
+              <button type="submit">Submit</button>
             </Form>
           );
         }}
@@ -115,10 +137,10 @@ const TEST_TABLE: TableField[] = [
   },
 ];
 
-function TableRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
+function TableFieldRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
   return (
     <div>
-      <h1>Table Row Data Form</h1>
+      <h1>Table FieldRow Data Form</h1>
       <Formik
         initialValues={{}}
         onSubmit={(values, { setSubmitting }) => {
@@ -138,41 +160,38 @@ function TableRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
                   case FieldType.TEXT_SINGLE_LINE:
                   case FieldType.URL:
                     return (
-                      <div key={fieldKey}>
-                        <label htmlFor={field.fieldName}>
-                          {field.fieldName}
-                        </label>
-                        <Field name={field.fieldName} type="text" />
-                        <ErrorMessage name={field.fieldName} />
-                      </div>
+                      <FieldRow
+                        key={fieldKey}
+                        fieldName={field.fieldName}
+                        fieldLabel={field.fieldName}
+                      />
                     );
                   case FieldType.TEXT_MULTI_LINE:
                     return (
-                      <div key={fieldKey}>
-                        <label htmlFor={field.fieldName}>
-                          {field.fieldName}
-                        </label>
-                        <Field as="textarea" name={field.fieldName} />
-                        <ErrorMessage name={field.fieldName} />
-                      </div>
+                      <FieldRow
+                        key={fieldKey}
+                        fieldName={field.fieldName}
+                        fieldLabel={field.fieldName}
+                        fieldAs="textarea"
+                      />
                     );
                   case FieldType.CHECKBOX:
                     return (
-                      <div key={fieldKey}>
-                        <label htmlFor={field.fieldName}>
-                          {field.fieldName}
-                        </label>
-                        <Field name={field.fieldName} type="checkbox" />
-                        <ErrorMessage name={field.fieldName} />
-                      </div>
+                      <FieldRow
+                        key={fieldKey}
+                        fieldName={field.fieldName}
+                        fieldLabel={field.fieldName}
+                        fieldType="checkbox"
+                      />
                     );
                   case FieldType.SELECT_MULTIPLE:
                   case FieldType.SELECT_SINGLE:
                     return (
-                      <div key={fieldKey}>
-                        <label htmlFor={field.fieldName}>
-                          {field.fieldName}
-                        </label>
+                      <FieldRow
+                        key={fieldKey}
+                        fieldName={field.fieldName}
+                        fieldLabel={field.fieldName}
+                      >
                         <Field
                           name={field.fieldName}
                           component={CustomSelect}
@@ -182,7 +201,7 @@ function TableRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
                           isMulti={fieldType === FieldType.SELECT_MULTIPLE}
                         />
                         <ErrorMessage name={field.fieldName} />
-                      </div>
+                      </FieldRow>
                     );
                   default:
                     assertUnreachable(fieldType);
@@ -201,13 +220,13 @@ function TableRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
 
 function App() {
   return (
-    <div className="App">
+    <div className={styles.App}>
       <TableFieldSchemaForm />
       <hr />
       <hr />
       <hr />
       <hr />
-      <TableRowDataForm tableSchema={TEST_TABLE} />
+      <TableFieldRowDataForm tableSchema={TEST_TABLE} />
     </div>
   );
 }

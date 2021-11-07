@@ -28,8 +28,8 @@ export type Table = {
 };
 
 export const FIELD_TYPE_READABLE: Record<FieldType, string> = {
-  TEXT_SINGLE_LINE: "Single line Text",
-  TEXT_MULTI_LINE: "Multi-line Text",
+  TEXT_SINGLE_LINE: "Single line text",
+  TEXT_MULTI_LINE: "Multi-line text",
   URL: "URL",
   CHECKBOX: "Checkbox",
   SELECT_SINGLE: "Single select",
@@ -37,12 +37,14 @@ export const FIELD_TYPE_READABLE: Record<FieldType, string> = {
 };
 
 export const FIELD_TYPE_DESCRIPTION: Record<FieldType, string> = {
-  TEXT_SINGLE_LINE: "Best for short text that fits on a single line.",
-  TEXT_MULTI_LINE: "Ideal for long form text that spans multiple lines.",
-  URL: "Use this if you intend to store a single URL in this field.",
-  CHECKBOX: "Useful for true / false values.",
+  TEXT_SINGLE_LINE:
+    "Single line text is best for short text that fits on a single line. Eg. names ",
+  TEXT_MULTI_LINE:
+    "Multi-line text is ideal for long form text that spans multiple lines.",
+  URL: "The URL field can be used if you intend to store a single URL in this field. When displayed, the field will link directly to the specified value.",
+  CHECKBOX: "The checkbox field type is useful for true / false values.",
   SELECT_SINGLE:
-    "Ideal when you want to ensure that one of a preset list of options is chosen.",
+    "The single select field type is ideal when you want to ensure that one of a preset list of options is chosen.",
   SELECT_MULTIPLE:
-    "Similar to single select field but allows for multiple options to be chosen.",
+    "The multi select field is similar to the single select field but allows for multiple options to be chosen.",
 };
