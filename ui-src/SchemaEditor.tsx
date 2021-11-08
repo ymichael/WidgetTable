@@ -2,11 +2,8 @@ import * as React from "react";
 import * as yup from "yup";
 import { Formik, Form, Field, FieldArray } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import {
-  FieldType,
-  FIELD_TYPE_READABLE,
-  FIELD_TYPE_DESCRIPTION,
-} from "./constants";
+import { FieldType } from "../shared/types";
+import { FIELD_TYPE_READABLE, FIELD_TYPE_DESCRIPTION } from "./constants";
 import { FieldRow, FieldRowSplit, ButtonRow } from "./FieldRow";
 import CustomSelect from "./input/CustomSelect";
 import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";

@@ -4,7 +4,7 @@ import styles from "./App.module.css";
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
 
-import { TableField, FieldType } from "./constants";
+import { FieldType, TableField } from "../shared/types";
 
 const TEST_TABLE: TableField[] = [
   { fieldName: "Title", fieldType: FieldType.TEXT_SINGLE_LINE },

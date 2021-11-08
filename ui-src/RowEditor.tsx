@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 
-import { TableField, FieldType } from "./constants";
+import { TableField, FieldType } from "../shared/types";
 import { assertUnreachable } from "./utils";
 
 import { FieldRow, ButtonRow } from "./FieldRow";
