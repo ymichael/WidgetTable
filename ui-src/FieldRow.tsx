@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { Field, ErrorMessage } from "formik";
-import { genId } from "./utils";
+import { genId } from "../shared/utils";
 import cx from "classnames";
 import styles from "./FieldRow.module.css";
 

@@ -2,7 +2,7 @@ import * as React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 
 import { TableField, FieldType } from "../shared/types";
-import { assertUnreachable } from "./utils";
+import { assertUnreachable } from "../shared/utils";
 
 import { FieldRow, ButtonRow } from "./FieldRow";
 import CustomSelect from "./input/CustomSelect";
