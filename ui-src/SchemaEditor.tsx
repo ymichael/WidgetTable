@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as yup from "yup";
-import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
+import { Formik, Form, Field, FieldArray } from "formik";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import {
   FieldType,
   FIELD_TYPE_READABLE,
@@ -35,12 +36,25 @@ const fieldsSchema = yup.object().shape({
     .test(
       "is-unique",
       "Please ensure that all field names are unique.",
-      (value, context) => {
-        const fieldNames = value.filter(Boolean).map((x) => x.fieldName);
+      (value: any[] | undefined) => {
+        const fieldNames = (value || [])
+          .filter(Boolean)
+          .map((x) => x.fieldName);
         return fieldNames.length === new Set([...fieldNames]).size;
       }
     ),
 });
+
+const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
+  return {
+    userSelect: "none",
+    marginBottom: "15px",
+    borderRadius: "4px",
+    border: isDragging ? "solid 2px #A83FFB" : "solid 1px hsl(0, 0%, 80%)",
+    backgroundColor: "#FFF",
+    ...draggableStyle,
+  };
+};
 
 export default function SchemaEditor() {
   return (
@@ -74,21 +88,62 @@ export default function SchemaEditor() {
                 name="fields"
                 render={(arrayHelpers) => {
                   return (
-                    <>
-                      {formik.values.fields.map((field, idx) => {
-                        return (
-                          <SchemaFieldForm
-                            key={idx}
-                            isRemovable={formik.values.fields.length > 1}
-                            onRemove={() => {
-                              arrayHelpers.remove(idx);
-                            }}
-                            setFieldValue={formik.setFieldValue}
-                            fieldIdx={idx}
-                            values={field}
-                          />
+                    <DragDropContext
+                      onDragEnd={(result) => {
+                        if (!result.destination) {
+                          return;
+                        }
+                        arrayHelpers.swap(
+                          result.source.index,
+                          result.destination.index
                         );
-                      })}
+                      }}
+                    >
+                      <Droppable droppableId="droppable">
+                        {(provided, snapshot) => (
+                          <>
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                            >
+                              {formik.values.fields.map((field, idx) => {
+                                return (
+                                  <Draggable
+                                    key={idx}
+                                    draggableId={`${idx}`}
+                                    index={idx}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        style={getItemStyle(
+                                          snapshot.isDragging,
+                                          provided.draggableProps.style
+                                        )}
+                                      >
+                                        <SchemaFieldForm
+                                          isRemovable={
+                                            formik.values.fields.length > 1
+                                          }
+                                          onRemove={() => {
+                                            arrayHelpers.remove(idx);
+                                          }}
+                                          setFieldValue={formik.setFieldValue}
+                                          fieldIdx={idx}
+                                          values={field}
+                                        />
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                );
+                              })}
+                            </div>
+                            {provided.placeholder}
+                          </>
+                        )}
+                      </Droppable>
 
                       <button
                         type="button"
@@ -103,7 +158,7 @@ export default function SchemaEditor() {
                       >
                         New Field
                       </button>
-                    </>
+                    </DragDropContext>
                   );
                 }}
               />

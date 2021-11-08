@@ -49,6 +49,6 @@ export function FieldRow({
   );
 }
 
-export function ButtonRow({ children }: { children: string }) {
+export function ButtonRow({ children }: { children: any }) {
   return <div className={styles.ButtonRow}>{children}</div>;
 }
