@@ -93,7 +93,7 @@ export default function SchemaEditor() {
                         if (!result.destination) {
                           return;
                         }
-                        arrayHelpers.swap(
+                        arrayHelpers.move(
                           result.source.index,
                           result.destination.index
                         );
