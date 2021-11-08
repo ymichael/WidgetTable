@@ -110,14 +110,7 @@ function TableFieldRowDataForm({ tableSchema }: { tableSchema: TableField[] }) {
 function App() {
   return (
     <div className={styles.App}>
-      <h1>Table Field Schema</h1>
-      <SchemaEditor fieldIdx={1} />
-      <SchemaEditor fieldIdx={2} />
-      <SchemaEditor fieldIdx={3} />
-      <div className={styles.FormButton}>
-        <button type="submit">Save Changes</button>
-        <button type="submit">Add Field</button>
-      </div>
+      <SchemaEditor />
     </div>
   );
 }

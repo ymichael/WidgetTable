@@ -1,13 +1,35 @@
-.FieldSchemaForm {
+.SchemaEditor {
+}
+
+.SchemaFieldForm {
   border: solid 1px hsl(0, 0%, 80%);
   border-radius: 4px;
   padding: 5px 15px 15px 15px;
   margin-bottom: 15px;
 }
 
-.FieldSchemaFormIndex {
+.SchemaFieldFormMeta {
   padding-top: 10px;
   font-size: 12px;
   font-weight: 500;
+  display: flex;
+  justify-content: space-between;
   color: #666666;
+}
+
+.NewFieldButton {
+  width: 100%;
+  margin-bottom: 10px;
+  border: none;
+  outline: 0;
+  border-radius: 20px;
+  padding: 12px;
+  font-size: 16px;
+  color: #2a2a2a;
+  background-color: #eee;
+}
+
+.FieldError {
+  color: #bf0f10;
+  padding: 10px;
 }

@@ -1,12 +1,12 @@
 import * as React from "react";
 import * as yup from "yup";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import {
   FieldType,
   FIELD_TYPE_READABLE,
   FIELD_TYPE_DESCRIPTION,
 } from "./constants";
-import { FieldRow, FieldRowSplit } from "./FieldRow";
+import { FieldRow, FieldRowSplit, ButtonRow } from "./FieldRow";
 import CustomSelect from "./input/CustomSelect";
 import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";
 import styles from "./SchemaEditor.module.css";
@@ -27,67 +27,179 @@ const fieldSchema = yup.object().shape({
   }),
 });
 
-export default function SchemaEditor({ fieldIdx }: { fieldIdx: number }) {
+const fieldsSchema = yup.object().shape({
+  fields: yup
+    .array()
+    .of(fieldSchema)
+    .min(1, "Please specify at least one field")
+    .test(
+      "is-unique",
+      "Please ensure that all field names are unique.",
+      (value, context) => {
+        const fieldNames = value.filter(Boolean).map((x) => x.fieldName);
+        return fieldNames.length === new Set([...fieldNames]).size;
+      }
+    ),
+});
+
+export default function SchemaEditor() {
   return (
-    <div className={styles.FieldSchemaForm}>
-      <div className={styles.FieldSchemaFormIndex}>{fieldIdx}</div>
+    <div className={styles.SchemaEditor}>
       <Formik
         initialValues={{
-          fieldName: "",
-          fieldType: FieldType.TEXT_SINGLE_LINE,
-          fieldOptions: [],
+          fields: [
+            {
+              fieldName: "Title",
+              fieldType: FieldType.TEXT_SINGLE_LINE,
+              fieldOptions: [],
+            },
+            {
+              fieldName: "Description",
+              fieldType: FieldType.TEXT_MULTI_LINE,
+              fieldOptions: [],
+            },
+          ],
         }}
-        validationSchema={fieldSchema}
+        validationSchema={fieldsSchema}
         onSubmit={(values, { setSubmitting }) => {
           console.log(values);
           setSubmitting(false);
         }}
       >
         {(formik) => {
+          const fieldsError = formik.errors?.fields || "";
           return (
             <Form onSubmit={formik.handleSubmit}>
-              <FieldRowSplit>
-                <FieldRow fieldName="fieldName" fieldLabel="Field Name" />
-                <FieldRow fieldName="fieldType" fieldLabel="Field Type">
-                  <Field
-                    name="fieldType"
-                    component={CustomSelect}
-                    options={Object.values(FieldType).map((fieldType) => {
-                      return {
-                        value: fieldType,
-                        label: FIELD_TYPE_READABLE[fieldType],
-                      };
-                    })}
-                  />
-                  {formik.values.fieldType && (
-                    <div
-                      style={{
-                        padding: "2px",
-                        fontSize: "12px",
-                        color: "#666666",
-                      }}
-                    >
-                      {FIELD_TYPE_DESCRIPTION[formik.values.fieldType]}
-                    </div>
-                  )}
-                </FieldRow>
-              </FieldRowSplit>
-              {(formik.values.fieldType === FieldType.SELECT_SINGLE ||
-                formik.values.fieldType === FieldType.SELECT_MULTIPLE) && (
-                <FieldRow fieldName="fieldOptions" fieldLabel="Field Options">
-                  <Field
-                    name="fieldOptions"
-                    component={CustomMultiSelectTextInput}
-                    onChange={(value: string[]) => {
-                      formik.setFieldValue("fieldOptions", value);
-                    }}
-                  />
-                </FieldRow>
-              )}
+              <FieldArray
+                name="fields"
+                render={(arrayHelpers) => {
+                  return (
+                    <>
+                      {formik.values.fields.map((field, idx) => {
+                        return (
+                          <SchemaFieldForm
+                            key={idx}
+                            isRemovable={formik.values.fields.length > 1}
+                            onRemove={() => {
+                              arrayHelpers.remove(idx);
+                            }}
+                            setFieldValue={formik.setFieldValue}
+                            fieldIdx={idx}
+                            values={field}
+                          />
+                        );
+                      })}
+
+                      <button
+                        type="button"
+                        className={styles.NewFieldButton}
+                        onClick={() => {
+                          arrayHelpers.push({
+                            fieldName: "",
+                            fieldType: FieldType.TEXT_SINGLE_LINE,
+                            fieldOptions: [],
+                          });
+                        }}
+                      >
+                        New Field
+                      </button>
+                    </>
+                  );
+                }}
+              />
+
+              <ButtonRow>
+                <button type="submit" disabled={!formik.isValid}>
+                  Save Changes
+                </button>
+                {fieldsError && typeof fieldsError === "string" && (
+                  <div className={styles.FieldError}>{fieldsError}</div>
+                )}
+              </ButtonRow>
             </Form>
           );
         }}
       </Formik>
+    </div>
+  );
+}
+
+function SchemaFieldForm({
+  fieldIdx,
+  values = {},
+  setFieldValue,
+  isRemovable,
+  onRemove,
+}: {
+  fieldIdx: number;
+  values: Partial<{
+    fieldName: string;
+    fieldType: FieldType;
+    fieldOptions: string[];
+  }>;
+  setFieldValue: (k: string, v: any) => void;
+  isRemovable: boolean;
+  onRemove: () => void;
+}) {
+  const fieldPrefix = `fields.${fieldIdx}`;
+  return (
+    <div className={styles.SchemaFieldForm}>
+      <div className={styles.SchemaFieldFormMeta}>
+        <span>{fieldIdx + 1}.</span>
+        {isRemovable && (
+          <a
+            onClick={onRemove}
+            style={{
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            Remove
+          </a>
+        )}
+      </div>
+
+      <FieldRowSplit>
+        <FieldRow
+          fieldName={`${fieldPrefix}.fieldName`}
+          fieldLabel="Field Name"
+        />
+        <FieldRow
+          fieldName={`${fieldPrefix}.fieldType`}
+          fieldLabel="Field Type"
+        >
+          <Field
+            name={`${fieldPrefix}.fieldType`}
+            component={CustomSelect}
+            options={Object.values(FieldType).map((fieldType) => {
+              return {
+                value: fieldType,
+                label: FIELD_TYPE_READABLE[fieldType],
+              };
+            })}
+          />
+          {values.fieldType && (
+            <div style={{ padding: "2px", fontSize: "12px", color: "#666666" }}>
+              {FIELD_TYPE_DESCRIPTION[values.fieldType]}
+            </div>
+          )}
+        </FieldRow>
+      </FieldRowSplit>
+      {(values.fieldType === FieldType.SELECT_SINGLE ||
+        values.fieldType === FieldType.SELECT_MULTIPLE) && (
+        <FieldRow
+          fieldName={`${fieldPrefix}.fieldOptions`}
+          fieldLabel="Field Options"
+        >
+          <Field
+            fieldName={`${fieldPrefix}.fieldOptions`}
+            component={CustomMultiSelectTextInput}
+            onChange={(value: string[]) => {
+              setFieldValue(`${fieldPrefix}.fieldOptions`, value);
+            }}
+          />
+        </FieldRow>
+      )}
     </div>
   );
 }
