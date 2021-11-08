@@ -1,4 +1,10 @@
 .SchemaEditor {
+  padding: 10px;
+  border-top: solid 10px #a83ffb;
+}
+.SchemaEditor h1 {
+  padding: 5px;
+  font-size: 18px;
 }
 
 .SchemaFieldForm {

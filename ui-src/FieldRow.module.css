@@ -44,14 +44,16 @@
 .FieldRow input[type="text"] {
   font-size: 16px;
   padding: 10px;
-  border: solid 1px hsl(0, 0%, 80%);
   border-radius: 4px;
+  border: none;
+  outline: solid 1px hsl(0, 0%, 80%);
+  box-sizing: border-box;
 }
 
 .FieldRow textarea:focus,
 .FieldRow input[type="text"]:focus {
-  outline: none !important;
-  border: 2px solid #a83ffb;
+  border: none;
+  outline: 2px solid #a83ffb;
 }
 
 .FieldError {

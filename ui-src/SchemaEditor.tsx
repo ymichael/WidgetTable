@@ -59,6 +59,9 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
 export default function SchemaEditor() {
   return (
     <div className={styles.SchemaEditor}>
+      <div>
+        <h1>Table Schema</h1>
+      </div>
       <Formik
         initialValues={{
           fields: [
