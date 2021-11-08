@@ -1,16 +1,25 @@
-import { TableField, FieldType } from "../shared/types";
+import {
+  TableField,
+  FieldType,
+  TRow,
+  IFrameToWidgetMessage,
+  WidgetToIFrameMessage,
+} from "../shared/types";
 import { assertUnreachable } from "../shared/utils";
 
 const { widget } = figma;
-const { AutoLayout, Text, useSyncedState, useSyncedMap, useEffect } = widget;
-
-type TRow = {
-  rowId: string;
-  rowData: { [key: string]: any };
-};
+const {
+  AutoLayout,
+  Text,
+  useSyncedState,
+  useSyncedMap,
+  useEffect,
+  usePropertyMenu,
+} = widget;
 
 class SyncedTable {
   ROW_AUTO_INCR_KEY = "row-auto-incr-key";
+  TABLE_TITLE_KEY = "table-title-key";
 
   constructor(
     private metadata: SyncedMap<any>,
@@ -32,6 +41,10 @@ class SyncedTable {
 
     this.metadata.set(this.ROW_AUTO_INCR_KEY, nextRowIdRangeEnd);
     return nextRowId;
+  }
+
+  getTitle(): string {
+    return this.metadata.get(this.TABLE_TITLE_KEY) || "Untitled";
   }
 
   appendRow(rowData: TRow["rowData"]): void {
@@ -135,13 +148,29 @@ function CellValue({
       width={widthForFieldType(fieldType)}
       fill="#2A2A2A"
     >
-      {value}
+      {fieldType === FieldType.CHECKBOX ? !!value : value ?? ""}
     </Text>
   );
 }
 
 const SPACING_VERTICAL = 15;
 const SPACING_HORIZONTAL = 30;
+const IFRAME_WIDTH = 500;
+
+const showUIWithPayload = (payload: WidgetToIFrameMessage) => {
+  figma.showUI(
+    `
+  <script>
+    window.widgetPayload = ${JSON.stringify(payload)};
+  </script>
+  ${__html__}
+`,
+    {
+      width: IFRAME_WIDTH,
+      height: 600,
+    }
+  );
+};
 
 function Table() {
   const [tableSchema, setTableSchema] = useSyncedState<TableField[]>(
@@ -171,7 +200,43 @@ function Table() {
           "Edit the rows in your widget. We'll make sure that each row follows the field type specified above.",
       });
     }
+
+    figma.ui.onmessage = (msg: IFrameToWidgetMessage) => {
+      switch (msg.type) {
+        case "RESIZE":
+          figma.ui.resize(IFRAME_WIDTH, Math.round(msg.height));
+          break;
+        default:
+          console.log("Unhandled msg:", msg);
+      }
+    };
   });
+  usePropertyMenu(
+    [
+      {
+        itemType: "action",
+        tooltip: "Edit Table Schema",
+        propertyName: "editSchema",
+      },
+      {
+        itemType: "action",
+        tooltip: "Add Row",
+        propertyName: "newRow",
+      },
+    ],
+    ({ propertyName }) => {
+      if (propertyName === "editSchema") {
+        showUIWithPayload({
+          type: "EDIT_SCHEMA",
+          table: {
+            name: syncedTable.getTitle(),
+            fields: tableSchema,
+          },
+        });
+      }
+      return new Promise(() => {});
+    }
+  );
 
   return (
     <AutoLayout
@@ -193,7 +258,7 @@ function Table() {
         horizontalAlignItems="center"
       >
         <Text fontFamily="Inter" fontSize={18} fontWeight={500} fill="#FFF">
-          Untitled
+          {syncedTable.getTitle()}
         </Text>
       </AutoLayout>
       <AutoLayout

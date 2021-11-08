@@ -32,7 +32,10 @@
   background-color: #eee;
 }
 
-.FieldError {
+.SubmitError {
   color: #bf0f10;
-  padding: 10px;
+  padding: 0;
+  text-align: right;
+  width: 150px;
+  font-size: 12px;
 }

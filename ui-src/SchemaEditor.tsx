@@ -2,7 +2,7 @@ import * as React from "react";
 import * as yup from "yup";
 import { Formik, Form, Field, FieldArray } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { FieldType } from "../shared/types";
+import { FieldType, Table } from "../shared/types";
 import { FIELD_TYPE_READABLE, FIELD_TYPE_DESCRIPTION } from "./constants";
 import { FieldRow, FieldRowSplit, ButtonRow } from "./FieldRow";
 import CustomSelect from "./input/CustomSelect";
@@ -53,27 +53,15 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
   };
 };
 
-export default function SchemaEditor() {
+export default function SchemaEditor({
+  initialValues,
+}: {
+  initialValues: Pick<Table, "fields">;
+}) {
   return (
     <div className={styles.SchemaEditor}>
-      <div>
-        <h1>Table Schema</h1>
-      </div>
       <Formik
-        initialValues={{
-          fields: [
-            {
-              fieldName: "Title",
-              fieldType: FieldType.TEXT_SINGLE_LINE,
-              fieldOptions: [],
-            },
-            {
-              fieldName: "Description",
-              fieldType: FieldType.TEXT_MULTI_LINE,
-              fieldOptions: [],
-            },
-          ],
-        }}
+        initialValues={initialValues}
         validationSchema={fieldsSchema}
         onSubmit={(values, { setSubmitting }) => {
           console.log(values);
@@ -84,6 +72,26 @@ export default function SchemaEditor() {
           const fieldsError = formik.errors?.fields || "";
           return (
             <Form onSubmit={formik.handleSubmit}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <h1>Table Schema</h1>
+                {fieldsError && typeof fieldsError === "string" && (
+                  <>
+                    <div style={{ width: 20 }}></div>
+                    <div className={styles.SubmitError}>{fieldsError}</div>
+                  </>
+                )}
+                <ButtonRow>
+                  <button type="submit" disabled={!formik.isValid}>
+                    Save Changes
+                  </button>
+                </ButtonRow>
+              </div>
               <FieldArray
                 name="fields"
                 render={(arrayHelpers) => {
@@ -162,15 +170,6 @@ export default function SchemaEditor() {
                   );
                 }}
               />
-
-              <ButtonRow>
-                <button type="submit" disabled={!formik.isValid}>
-                  Save Changes
-                </button>
-                {fieldsError && typeof fieldsError === "string" && (
-                  <div className={styles.FieldError}>{fieldsError}</div>
-                )}
-              </ButtonRow>
             </Form>
           );
         }}

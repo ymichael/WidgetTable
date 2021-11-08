@@ -26,3 +26,37 @@ export type Table = {
   name: string;
   fields: TableField[];
 };
+
+export type TRow = {
+  rowId: string;
+  rowData: { [key: string]: any };
+};
+
+export type WidgetToIFrameMessage =
+  | {
+      type: "EDIT_SCHEMA";
+      table: Table;
+    }
+  | {
+      type: "EDIT_ROW";
+      row: TRow;
+    };
+
+export type IFrameToWidgetMessage =
+  | {
+      type: "RESIZE";
+      width: number;
+      height: number;
+    }
+  | {
+      type: "UPDATE_SCHEMA";
+      table: Table;
+    }
+  | {
+      type: "EDIT_ROW";
+      row: TRow;
+    }
+  | {
+      type: "NEW_ROW";
+      row: Pick<TRow, "rowData">;
+    };
