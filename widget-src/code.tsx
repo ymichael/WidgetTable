@@ -378,7 +378,11 @@ function Table() {
             );
           })}
         </AutoLayout>
-        <AutoLayout direction="vertical" spacing={SPACING_VERTICAL}>
+        <AutoLayout
+          direction="vertical"
+          spacing={SPACING_VERTICAL}
+          padding={{ bottom: 10 }}
+        >
           <Frame name="Spacer" width={495} height={1} />
           {syncedTable.getRows().map(([rowKey, row], idx) => {
             return (
@@ -409,33 +413,33 @@ function Table() {
               </AutoLayout>
             );
           })}
-          <AutoLayout
-            width="fill-parent"
-            fill={{
-              type: "solid",
-              opacity: 0.5,
-              color: {
-                r: 0.6588332653045654,
-                g: 0.24583333730697632,
-                b: 0.9833333492279053,
-                a: 0.14000000059604645,
-              },
-            }}
-            cornerRadius={20}
-            padding={10}
-            horizontalAlignItems="center"
-            verticalAlignItems="center"
-            onClick={() => {
-              return showUIWithPayload({
-                type: "NEW_ROW",
-                fields: tableSchema,
-              });
-            }}
-          >
-            <Text fontSize={12} fontFamily="Inter">
-              New Row
-            </Text>
-          </AutoLayout>
+        </AutoLayout>
+        <AutoLayout
+          width="fill-parent"
+          fill={{
+            type: "solid",
+            opacity: 0.5,
+            color: {
+              r: 0.6588332653045654,
+              g: 0.24583333730697632,
+              b: 0.9833333492279053,
+              a: 0.14000000059604645,
+            },
+          }}
+          cornerRadius={20}
+          padding={10}
+          horizontalAlignItems="center"
+          verticalAlignItems="center"
+          onClick={() => {
+            return showUIWithPayload({
+              type: "NEW_ROW",
+              fields: tableSchema,
+            });
+          }}
+        >
+          <Text fontSize={12} fontFamily="Inter">
+            New Row
+          </Text>
         </AutoLayout>
       </AutoLayout>
     </AutoLayout>
