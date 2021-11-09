@@ -64,14 +64,17 @@ class SyncedTable {
 
 const DEFAULT_SCHEMA: TableField[] = [
   {
+    fieldId: "step",
     fieldName: "Step",
     fieldType: FieldType.TEXT_SINGLE_LINE,
   },
   {
+    fieldId: "desc",
     fieldName: "Description",
     fieldType: FieldType.TEXT_MULTI_LINE,
   },
   {
+    fieldId: "completed",
     fieldName: "Completed",
     fieldType: FieldType.CHECKBOX,
   },
@@ -185,20 +188,17 @@ function Table() {
     if (tableSchema.length === 0 && tableRows.size === 0) {
       setTableSchema(DEFAULT_SCHEMA);
       syncedTable.appendRow({
-        Step: "Insert Widget",
-        Description:
-          "The first step to using this widget is inserting it into FigJam! Congratulations you have completed this step.",
-        Completed: true,
+        step: "Insert Widget",
+        desc: "The first step to using this widget is inserting it into FigJam! Congratulations you have completed this step.",
+        completed: true,
       });
       syncedTable.appendRow({
-        Step: "Customise Fields",
-        Description:
-          "This widget supports various field types. Customize your table fields accordingly for you use case.",
+        step: "Customise Fields",
+        desc: "This widget supports various field types. Customize your table fields accordingly for you use case.",
       });
       syncedTable.appendRow({
-        Step: "Add / Edit / Remove Rows",
-        Description:
-          "Edit the rows in your widget. We'll make sure that each row follows the field type specified above.",
+        step: "Add / Edit / Remove Rows",
+        desc: "Edit the rows in your widget. We'll make sure that each row follows the field type specified above.",
       });
     }
 
@@ -279,7 +279,7 @@ function Table() {
           {tableSchema.map((field) => {
             return (
               <ColumnHeader
-                key={field.fieldName}
+                key={field.fieldId}
                 fieldType={field.fieldType}
                 fieldName={field.fieldName}
               />
@@ -294,9 +294,9 @@ function Table() {
                 {tableSchema.map((field) => {
                   return (
                     <CellValue
-                      key={field.fieldName}
+                      key={field.fieldId}
                       fieldType={field.fieldType}
-                      value={row[field.fieldName]}
+                      value={row[field.fieldId]}
                     />
                   );
                 })}

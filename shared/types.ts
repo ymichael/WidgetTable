@@ -9,6 +9,7 @@ export enum FieldType {
 
 export type TableField =
   | {
+      fieldId: string;
       fieldName: string;
       fieldType:
         | FieldType.TEXT_SINGLE_LINE
@@ -17,6 +18,7 @@ export type TableField =
         | FieldType.URL;
     }
   | {
+      fieldId: string;
       fieldName: string;
       fieldType: FieldType.SELECT_SINGLE | FieldType.SELECT_MULTIPLE;
       fieldOptions: string[];

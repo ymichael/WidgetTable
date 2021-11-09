@@ -4,32 +4,32 @@ import styles from "./App.module.css";
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
 
-import {
-  Table,
-  FieldType,
-  TableField,
-  WidgetToIFrameMessage,
-} from "../shared/types";
+import { Table, FieldType, WidgetToIFrameMessage } from "../shared/types";
 
-const TEST_TABLE: TableField[] = [
-  { fieldName: "Title", fieldType: FieldType.TEXT_SINGLE_LINE },
-  { fieldName: "Description", fieldType: FieldType.TEXT_MULTI_LINE },
-  { fieldName: "Published", fieldType: FieldType.CHECKBOX },
-  {
-    fieldName: "Status",
-    fieldType: FieldType.SELECT_SINGLE,
-    fieldOptions: ["Draft", "In Review", "Ready"],
-  },
-  {
-    fieldName: "Tags",
-    fieldType: FieldType.SELECT_MULTIPLE,
-    fieldOptions: ["Eng", "Design", "Data", "General"],
-  },
-];
+const TEST_TABLE: Table = {
+  name: "Untitled",
+  fields: [
+    {
+      fieldId: "title",
+      fieldName: "Title",
+      fieldType: FieldType.TEXT_SINGLE_LINE,
+    },
+    {
+      fieldId: "desc",
+      fieldName: "Description",
+      fieldType: FieldType.TEXT_MULTI_LINE,
+    },
+    {
+      fieldId: "published",
+      fieldName: "Published",
+      fieldType: FieldType.CHECKBOX,
+    },
+  ],
+};
 
 const TEST_DATA = {
-  Title: "Hello Widgets",
-  Published: true,
+  title: "Hello Widgets",
+  published: true,
 };
 
 const widgetPayload: WidgetToIFrameMessage | undefined = (window as any)
@@ -39,20 +39,7 @@ const showSchemaEditor = !!widgetPayload
   : /schema=1/.test(window.location.search);
 
 const schema: Pick<Table, "fields"> =
-  widgetPayload?.type === "EDIT_SCHEMA"
-    ? widgetPayload.table
-    : {
-        fields: [
-          {
-            fieldName: "Title",
-            fieldType: FieldType.TEXT_SINGLE_LINE,
-          },
-          {
-            fieldName: "Description",
-            fieldType: FieldType.TEXT_MULTI_LINE,
-          },
-        ],
-      };
+  widgetPayload?.type === "EDIT_SCHEMA" ? widgetPayload.table : TEST_TABLE;
 
 function App() {
   return (
@@ -65,7 +52,7 @@ function App() {
           }}
         />
       ) : (
-        <RowEditor tableSchema={TEST_TABLE} initialValues={TEST_DATA} />
+        <RowEditor tableSchema={TEST_TABLE.fields} initialValues={TEST_DATA} />
       )}
     </div>
   );
