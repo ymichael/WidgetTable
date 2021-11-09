@@ -250,7 +250,7 @@ function SchemaFieldForm({
           <Field
             fieldName={`${fieldPrefix}.fieldOptions`}
             component={CustomMultiSelectTextInput}
-            initialValue={values.fieldOptions}
+            initialValue={values.fieldOptions || []}
             onChange={(value: string[]) => {
               setFieldValue(`${fieldPrefix}.fieldOptions`, value);
             }}
