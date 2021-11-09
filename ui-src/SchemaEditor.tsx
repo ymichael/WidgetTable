@@ -4,7 +4,7 @@ import { Formik, Form, Field, FieldArray } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FieldType, Table } from "../shared/types";
 import { FIELD_TYPE_READABLE, FIELD_TYPE_DESCRIPTION } from "./constants";
-import { FieldRow, FieldRowSplit, ButtonRow } from "./FieldRow";
+import { FieldRow, FieldRowSplit, Button, ButtonRow } from "./FieldRow";
 import CustomSelect from "./input/CustomSelect";
 import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";
 import styles from "./SchemaEditor.module.css";
@@ -168,6 +168,14 @@ export default function SchemaEditor({
                       >
                         New Field
                       </button>
+                      <Button
+                        type="submit"
+                        style={{
+                          width: "100%",
+                        }}
+                      >
+                        Save Changes
+                      </Button>
                     </DragDropContext>
                   );
                 }}

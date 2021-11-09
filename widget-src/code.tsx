@@ -11,6 +11,7 @@ import fractionalIndex from "./fractional-indexing";
 const { widget } = figma;
 const {
   AutoLayout,
+  Frame,
   Text,
   useSyncedState,
   useSyncedMap,
@@ -378,6 +379,7 @@ function Table() {
           })}
         </AutoLayout>
         <AutoLayout direction="vertical" spacing={SPACING_VERTICAL}>
+          <Frame name="Spacer" width={495} height={1} />
           {syncedTable.getRows().map(([rowKey, row], idx) => {
             return (
               <AutoLayout
