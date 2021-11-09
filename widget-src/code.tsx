@@ -266,7 +266,7 @@ function Table() {
           break;
         case "NEW_ROW":
           syncedTable.appendRow(msg.row.rowData);
-          if (!msg.fromEdit) {
+          if (msg.closeIframe) {
             figma.closePlugin();
           }
           break;

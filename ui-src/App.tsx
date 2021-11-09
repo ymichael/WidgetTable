@@ -98,11 +98,11 @@ function App() {
               console.log("onDelete");
             }
           }}
-          onCreate={(v) => {
+          onCreate={(v, closeIframe) => {
             if (!!widgetPayload) {
               const payload: IFrameToWidgetMessage = {
                 type: "NEW_ROW",
-                fromEdit: widgetPayload?.type === "EDIT_ROW",
+                closeIframe,
                 row: { rowData: v },
               };
               parent?.postMessage({ pluginMessage: payload }, "*");

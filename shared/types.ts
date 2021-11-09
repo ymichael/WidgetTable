@@ -67,7 +67,7 @@ export type IFrameToWidgetMessage =
     }
   | {
       type: "NEW_ROW";
-      fromEdit: boolean;
+      closeIframe: boolean;
       row: Pick<TRow, "rowData">;
     }
   | {

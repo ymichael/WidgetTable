@@ -22,7 +22,7 @@ export default function RowEditor({
   isEdit: boolean;
   onEdit: (v: { [key: string]: any }) => void;
   onDelete: () => void;
-  onCreate: (v: { [key: string]: any }) => void;
+  onCreate: (v: { [key: string]: any }, closeIframe: boolean) => void;
 }) {
   return (
     <div className={styles.RowEditor}>
@@ -32,7 +32,7 @@ export default function RowEditor({
           if (isEdit) {
             onEdit(values);
           } else {
-            onCreate(values);
+            onCreate(values, true);
           }
           setSubmitting(false);
         }}
@@ -59,7 +59,7 @@ export default function RowEditor({
                         disabled={!formik.isValid}
                         onClick={() => {
                           if (formik.isValid) {
-                            onCreate(formik.values);
+                            onCreate(formik.values, false);
                           }
                         }}
                       >
@@ -85,7 +85,7 @@ export default function RowEditor({
                         disabled={!formik.isValid}
                         onClick={() => {
                           if (formik.isValid) {
-                            onCreate(formik.values);
+                            onCreate(formik.values, false);
                             formik.resetForm();
                           }
                         }}
