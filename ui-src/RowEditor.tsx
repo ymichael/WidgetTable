@@ -76,9 +76,23 @@ export default function RowEditor({
                       </button>
                     </>
                   ) : (
-                    <button type="submit" disabled={!formik.isValid}>
-                      Add Row
-                    </button>
+                    <>
+                      <button type="submit" disabled={!formik.isValid}>
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!formik.isValid}
+                        onClick={() => {
+                          if (formik.isValid) {
+                            onCreate(formik.values);
+                            formik.resetForm();
+                          }
+                        }}
+                      >
+                        Add and reset form
+                      </button>
+                    </>
                   )}
                 </ButtonRow>
               </div>

@@ -6,6 +6,7 @@ import {
   WidgetToIFrameMessage,
 } from "../shared/types";
 import { assertUnreachable } from "../shared/utils";
+import fractionalIndex from "./fractional-indexing";
 
 const { widget } = figma;
 const {
@@ -26,20 +27,11 @@ class SyncedTable {
     private rows: SyncedMap<TRow["rowData"]>
   ) {}
 
-  private getKeyBetween = (from: number, to: number): number => {
-    return from + Math.random() * (from - to);
-  };
-
   private genRowId(): number {
-    const nextRowIdRangeStart =
-      +(this.metadata.get(this.ROW_AUTO_INCR_KEY) || 1) || 1;
-    const nextRowIdRangeEnd = nextRowIdRangeStart + 1;
-    const nextRowId = this.getKeyBetween(
-      nextRowIdRangeStart,
-      nextRowIdRangeEnd
-    );
-
-    this.metadata.set(this.ROW_AUTO_INCR_KEY, nextRowIdRangeEnd);
+    const currKey =
+      this.metadata.get(this.ROW_AUTO_INCR_KEY) || fractionalIndex.ZERO;
+    const nextRowId = fractionalIndex(String(currKey), null);
+    this.metadata.set(this.ROW_AUTO_INCR_KEY, nextRowId);
     return nextRowId;
   }
 
@@ -138,7 +130,8 @@ function RowIdx({ idx }: { idx: number }) {
       fontSize={12}
       fontFamily="Inter"
       fontWeight={400}
-      width={2}
+      width={15}
+      horizontalAlignText="right"
       fill="#2A2A2A"
       opacity={0.5}
     >
