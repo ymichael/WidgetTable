@@ -52,3 +52,7 @@ export function FieldRow({
 export function ButtonRow({ children }: { children: any }) {
   return <div className={styles.ButtonRow}>{children}</div>;
 }
+
+export function Button(props: any) {
+  return <button className={styles.Button} {...props} />;
+}

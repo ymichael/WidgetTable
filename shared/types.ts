@@ -34,20 +34,22 @@ export type TRow = {
   rowData: { [key: string]: any };
 };
 
-export type WidgetToIFrameMessage =
+export type WidgetToIFrameMessage = { fields: TableField[] } & (
   | {
       type: "EDIT_SCHEMA";
-      fields: TableField[];
     }
   | {
       type: "NEW_ROW";
-      fields: TableField[];
     }
   | {
       type: "EDIT_ROW";
-      fields: TableField[];
       row: TRow;
-    };
+    }
+  | {
+      type: "RENAME_TABLE";
+      name: string;
+    }
+);
 
 export type IFrameToWidgetMessage =
   | {
@@ -71,4 +73,8 @@ export type IFrameToWidgetMessage =
   | {
       type: "DELETE_ROW";
       row: Pick<TRow, "rowId">;
+    }
+  | {
+      type: "RENAME_TABLE";
+      name: string;
     };

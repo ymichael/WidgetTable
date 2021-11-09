@@ -67,6 +67,7 @@
   margin: 0 -5px;
 }
 
+.Button,
 .ButtonRow button {
   margin: 0 5px;
   border: solid 2px;
@@ -78,6 +79,7 @@
   background-color: transparent;
 }
 
+.Button[disabled],
 .ButtonRow button[disabled] {
   opacity: 0.3;
 }

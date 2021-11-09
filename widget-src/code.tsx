@@ -44,7 +44,11 @@ class SyncedTable {
   }
 
   getTitle(): string {
-    return this.metadata.get(this.TABLE_TITLE_KEY) || "Untitled";
+    return this.metadata.get(this.TABLE_TITLE_KEY) || "";
+  }
+
+  setTitle(name: string): void {
+    this.metadata.set(this.TABLE_TITLE_KEY, name);
   }
 
   appendRow(rowData: TRow["rowData"]): void {
@@ -206,6 +210,17 @@ const SPACING_VERTICAL = 15;
 const SPACING_HORIZONTAL = 20;
 const IFRAME_WIDTH = 500;
 
+function getInitialHeightForPayload(payload: WidgetToIFrameMessage): number {
+  switch (payload.type) {
+    case "EDIT_SCHEMA":
+      return 600;
+    case "RENAME_TABLE":
+      return 200;
+    default:
+      return 308;
+  }
+}
+
 const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
   return new Promise(() => {
     figma.showUI(
@@ -216,7 +231,7 @@ const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
       `,
       {
         width: IFRAME_WIDTH,
-        height: payload.type === "EDIT_SCHEMA" ? 600 : 308,
+        height: getInitialHeightForPayload(payload),
       }
     );
   });
@@ -265,6 +280,10 @@ function Table() {
           break;
         case "DELETE_ROW":
           syncedTable.deleteRow(msg.row.rowId);
+          figma.closePlugin();
+          break;
+        case "RENAME_TABLE":
+          syncedTable.setTitle(msg.name);
           figma.closePlugin();
           break;
         case "UPDATE_SCHEMA":
@@ -330,8 +349,20 @@ function Table() {
         verticalAlignItems="center"
         horizontalAlignItems="center"
       >
-        <Text fontFamily="Inter" fontSize={18} fontWeight={500} fill="#FFF">
-          {syncedTable.getTitle()}
+        <Text
+          fontFamily="Inter"
+          fontSize={18}
+          fontWeight={500}
+          fill="#FFF"
+          onClick={() => {
+            return showUIWithPayload({
+              type: "RENAME_TABLE",
+              name: syncedTable.getTitle(),
+              fields: tableSchema,
+            });
+          }}
+        >
+          {syncedTable.getTitle() || "Untitled"}
         </Text>
       </AutoLayout>
       <AutoLayout

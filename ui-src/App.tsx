@@ -3,6 +3,7 @@ import styles from "./App.module.css";
 
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
+import TableNameEditor from "./TableNameEditor";
 
 import {
   Table,
@@ -34,10 +35,16 @@ const widgetPayload: WidgetToIFrameMessage | undefined = (window as any)
 const showSchemaEditor = !!widgetPayload
   ? widgetPayload.type === "EDIT_SCHEMA"
   : /schema=1/.test(window.location.search);
+const showTitleEditor = !!widgetPayload
+  ? widgetPayload.type === "RENAME_TABLE"
+  : /title=1/.test(window.location.search);
+const showRowEditor = !showSchemaEditor && !showTitleEditor;
 
 const tableSchema: Table["fields"] = !!widgetPayload
   ? widgetPayload.fields
   : TEST_TABLE_SCHEMA;
+const tableName =
+  widgetPayload?.type === "RENAME_TABLE" ? widgetPayload.name : "";
 const rowData =
   widgetPayload?.type === "EDIT_ROW" ? widgetPayload.row.rowData : {};
 
@@ -61,7 +68,7 @@ function App() {
             }
           }}
         />
-      ) : (
+      ) : showRowEditor ? (
         <RowEditor
           tableSchema={tableSchema}
           initialValues={rowData}
@@ -103,6 +110,21 @@ function App() {
               parent?.postMessage({ pluginMessage: payload }, "*");
             } else {
               console.log({ onCreate: v });
+            }
+          }}
+        />
+      ) : (
+        <TableNameEditor
+          name={tableName}
+          onSubmit={({ name }) => {
+            if (!!widgetPayload) {
+              const payload: IFrameToWidgetMessage = {
+                type: "RENAME_TABLE",
+                name,
+              };
+              parent?.postMessage({ pluginMessage: payload }, "*");
+            } else {
+              console.log({ name });
             }
           }}
         />
