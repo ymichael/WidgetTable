@@ -272,15 +272,18 @@ function Table() {
           break;
         case "EDIT_ROW":
           syncedTable.updateRow(msg.row.rowId, msg.row.rowData);
-          figma.closePlugin();
+          if (msg.closeIframe) {
+            figma.closePlugin();
+          }
           break;
         case "DELETE_ROW":
           syncedTable.deleteRow(msg.row.rowId);
-          figma.closePlugin();
           break;
         case "RENAME_TABLE":
           syncedTable.setTitle(msg.name);
-          figma.closePlugin();
+          if (msg.closeIframe) {
+            figma.closePlugin();
+          }
           break;
         case "UPDATE_SCHEMA":
           setTableSchema(
@@ -291,7 +294,9 @@ function Table() {
               return field;
             })
           );
-          figma.closePlugin();
+          if (msg.closeIframe) {
+            figma.closePlugin();
+          }
           break;
         default:
           assertUnreachable(msg);

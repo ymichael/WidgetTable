@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FieldType, Table } from "../shared/types";
 import { FIELD_TYPE_READABLE, FIELD_TYPE_DESCRIPTION } from "./constants";
 import { FieldRow, FieldRowSplit, Button, ButtonRow } from "./FieldRow";
+import AutoSubmitter from "./AutoSubmitter";
 import CustomSelect from "./input/CustomSelect";
 import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";
 import styles from "./SchemaEditor.module.css";
@@ -58,7 +59,7 @@ export default function SchemaEditor({
   onSubmit,
 }: {
   initialValues: Pick<Table, "fields">;
-  onSubmit: (v: Pick<Table, "fields">) => void;
+  onSubmit: (v: Pick<Table, "fields">, closeIframe: boolean) => void;
 }) {
   return (
     <div className={styles.SchemaEditor}>
@@ -66,7 +67,7 @@ export default function SchemaEditor({
         initialValues={initialValues}
         validationSchema={fieldsSchema}
         onSubmit={(values, { setSubmitting }) => {
-          onSubmit(values);
+          onSubmit(values, true);
           setSubmitting(false);
         }}
       >
@@ -74,6 +75,10 @@ export default function SchemaEditor({
           const fieldsError = formik.errors?.fields || "";
           return (
             <Form onSubmit={formik.handleSubmit}>
+              <AutoSubmitter
+                formik={formik}
+                onAutoSubmit={(v) => onSubmit(v, false)}
+              />
               <div
                 style={{
                   display: "flex",
@@ -90,7 +95,7 @@ export default function SchemaEditor({
                 )}
                 <ButtonRow>
                   <button type="submit" disabled={!formik.isValid}>
-                    Save Changes
+                    Done
                   </button>
                 </ButtonRow>
               </div>
@@ -170,11 +175,12 @@ export default function SchemaEditor({
                       </button>
                       <Button
                         type="submit"
+                        disabled={!formik.isValid}
                         style={{
                           width: "100%",
                         }}
                       >
-                        Save Changes
+                        Done
                       </Button>
                     </DragDropContext>
                   );

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A Table Widget",
   "scripts": {
-    "test": "npm run typecheck && npm run build",
+    "test": "npm run tsc && npm run build",
     "format": "prettier --write .",
-    "tsc": "npm run typecheck:main && npm run typecheck:ui",
+    "tsc": "npm run tsc:main && npm run tsc:ui",
     "tsc:main": "tsc --noEmit -p widget-src",
     "tsc:ui": "tsc --noEmit -p ui-src",
     "tsc:watch": "concurrently -n widget,iframe \"npm run tsc:main -- --watch --preserveWatchOutput\" \"npm run tsc:ui -- --watch --preserveWatchOutput\"",
@@ -20,6 +20,7 @@
   "dependencies": {
     "classnames": "^2.3.1",
     "formik": "^2.2.9",
+    "lodash": "^4.17.21",
     "react": "^17.0.0",
     "react-beautiful-dnd": "^13.1.0",
     "react-dom": "^17.0.0",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@figma/plugin-typings": "^1.37.0",
     "@figma/widget-typings": "^1.0.2",
+    "@types/lodash": "^4.14.176",
     "@types/react": "^17.0.0",
     "@types/react-beautiful-dnd": "^13.1.2",
     "@types/react-dom": "^17.0.0",

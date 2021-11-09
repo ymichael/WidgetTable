@@ -54,15 +54,16 @@ function App() {
       {showSchemaEditor ? (
         <SchemaEditor
           initialValues={{ fields: tableSchema }}
-          onSubmit={(v) => {
+          onSubmit={(v, closeIframe) => {
             if (widgetPayload?.type === "EDIT_SCHEMA") {
               const payload: IFrameToWidgetMessage = {
                 type: "UPDATE_SCHEMA",
+                closeIframe,
                 fields: v.fields,
               };
               parent?.postMessage({ pluginMessage: payload }, "*");
             } else {
-              console.log({ schema: v });
+              console.log({ schema: v, closeIframe });
             }
           }}
         />
@@ -71,10 +72,11 @@ function App() {
           tableSchema={tableSchema}
           initialValues={rowData}
           isEdit={widgetPayload?.type === "EDIT_ROW"}
-          onEdit={(v) => {
+          onEdit={(v, closeIframe) => {
             if (widgetPayload?.type === "EDIT_ROW") {
               const payload: IFrameToWidgetMessage = {
                 type: "EDIT_ROW",
+                closeIframe,
                 row: {
                   rowId: widgetPayload.row.rowId,
                   rowData: v,
@@ -82,7 +84,7 @@ function App() {
               };
               parent?.postMessage({ pluginMessage: payload }, "*");
             } else {
-              console.log({ onEdit: v });
+              console.log({ onEdit: v, closeIframe });
             }
           }}
           onDelete={() => {
@@ -107,22 +109,23 @@ function App() {
               };
               parent?.postMessage({ pluginMessage: payload }, "*");
             } else {
-              console.log({ onCreate: v });
+              console.log({ onCreate: v, closeIframe });
             }
           }}
         />
       ) : (
         <TableNameEditor
           name={tableName}
-          onSubmit={({ name }) => {
+          onSubmit={({ name }, closeIframe) => {
             if (!!widgetPayload) {
               const payload: IFrameToWidgetMessage = {
                 type: "RENAME_TABLE",
+                closeIframe,
                 name,
               };
               parent?.postMessage({ pluginMessage: payload }, "*");
             } else {
-              console.log({ name });
+              console.log({ name, closeIframe });
             }
           }}
         />

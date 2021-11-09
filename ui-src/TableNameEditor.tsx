@@ -3,6 +3,7 @@ import { useRef, useEffect } from "react";
 import * as yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { FieldRow, Button } from "./FieldRow";
+import AutoSubmitter from "./AutoSubmitter";
 import styles from "./TableNameEditor.module.css";
 
 const nameSchema = yup.object().shape({
@@ -14,7 +15,7 @@ export default function TableNameEditor({
   onSubmit,
 }: {
   name: string;
-  onSubmit: (v: { name: string }) => void;
+  onSubmit: (v: { name: string }, closeIframe: boolean) => void;
 }) {
   const inputEl = useRef<any>(null);
   useEffect(() => {
@@ -28,13 +29,17 @@ export default function TableNameEditor({
         initialValues={{ name }}
         validationSchema={nameSchema}
         onSubmit={(values, { setSubmitting }) => {
-          onSubmit(values);
+          onSubmit(values, true);
           setSubmitting(false);
         }}
       >
         {(formik) => {
           return (
             <Form onSubmit={formik.handleSubmit}>
+              <AutoSubmitter
+                formik={formik}
+                onAutoSubmit={(v) => onSubmit(v, false)}
+              />
               <div>
                 <FieldRow fieldName="name" fieldLabel="Table Name">
                   <div
@@ -59,7 +64,7 @@ export default function TableNameEditor({
                         width: "150px",
                       }}
                     >
-                      Save Changes
+                      Done
                     </Button>
                   </div>
                 </FieldRow>

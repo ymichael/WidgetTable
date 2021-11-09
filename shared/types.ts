@@ -59,10 +59,12 @@ export type IFrameToWidgetMessage =
     }
   | {
       type: "UPDATE_SCHEMA";
+      closeIframe: boolean;
       fields: TableField[];
     }
   | {
       type: "EDIT_ROW";
+      closeIframe: boolean;
       row: TRow;
     }
   | {
@@ -76,5 +78,6 @@ export type IFrameToWidgetMessage =
     }
   | {
       type: "RENAME_TABLE";
+      closeIframe: boolean;
       name: string;
     };

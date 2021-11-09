@@ -6,6 +6,7 @@ import { assertUnreachable } from "../shared/utils";
 
 import { FieldRow, ButtonRow } from "./FieldRow";
 import CustomSelect from "./input/CustomSelect";
+import AutoSubmitter from "./AutoSubmitter";
 
 import styles from "./RowEditor.module.css";
 
@@ -20,8 +21,8 @@ export default function RowEditor({
   initialValues: { [key: string]: any };
   tableSchema: TableField[];
   isEdit: boolean;
-  onEdit: (v: { [key: string]: any }) => void;
   onDelete: () => void;
+  onEdit: (v: { [key: string]: any }, closeIframe: boolean) => void;
   onCreate: (v: { [key: string]: any }, closeIframe: boolean) => void;
 }) {
   return (
@@ -30,7 +31,7 @@ export default function RowEditor({
         initialValues={initialValues}
         onSubmit={(values, { setSubmitting }) => {
           if (isEdit) {
-            onEdit(values);
+            onEdit(values, true);
           } else {
             onCreate(values, true);
           }
@@ -40,6 +41,12 @@ export default function RowEditor({
         {(formik) => {
           return (
             <Form onSubmit={formik.handleSubmit}>
+              {isEdit && (
+                <AutoSubmitter
+                  formik={formik}
+                  onAutoSubmit={(v) => onEdit(v, false)}
+                />
+              )}
               <div
                 style={{
                   display: "flex",
@@ -52,7 +59,7 @@ export default function RowEditor({
                   {isEdit ? (
                     <>
                       <button type="submit" disabled={!formik.isValid}>
-                        Update
+                        Done
                       </button>
                       <button
                         type="button"
@@ -63,7 +70,7 @@ export default function RowEditor({
                           }
                         }}
                       >
-                        Save as new
+                        Duplicate
                       </button>
                       <button
                         type="button"
@@ -79,18 +86,6 @@ export default function RowEditor({
                     <>
                       <button type="submit" disabled={!formik.isValid}>
                         Add
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!formik.isValid}
-                        onClick={() => {
-                          if (formik.isValid) {
-                            onCreate(formik.values, false);
-                            formik.resetForm();
-                          }
-                        }}
-                      >
-                        Add and reset form
                       </button>
                     </>
                   )}
