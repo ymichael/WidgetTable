@@ -53,12 +53,12 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
   };
 };
 
-export default function SchemaEditor<T = Pick<Table, "fields">>({
+export default function SchemaEditor({
   initialValues,
   onSubmit,
 }: {
-  initialValues: T;
-  onSubmit: (v: T) => void;
+  initialValues: Pick<Table, "fields">;
+  onSubmit: (v: Pick<Table, "fields">) => void;
 }) {
   return (
     <div className={styles.SchemaEditor}>

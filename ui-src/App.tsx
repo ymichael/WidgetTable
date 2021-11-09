@@ -58,7 +58,12 @@ function App() {
   return (
     <div className={styles.App}>
       {showSchemaEditor ? (
-        <SchemaEditor initialValues={schema} />
+        <SchemaEditor
+          initialValues={schema}
+          onSubmit={(v) => {
+            console.log({ v });
+          }}
+        />
       ) : (
         <RowEditor tableSchema={TEST_TABLE} initialValues={TEST_DATA} />
       )}
