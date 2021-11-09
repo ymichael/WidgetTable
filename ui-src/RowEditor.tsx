@@ -68,7 +68,7 @@ export default function RowEditor({
                       <button
                         type="button"
                         style={{ color: "#f10d0d" }}
-                        onDoubleClick={() => {
+                        onClick={() => {
                           onDelete();
                         }}
                       >

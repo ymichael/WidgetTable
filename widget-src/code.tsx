@@ -166,10 +166,10 @@ function CellValue({
   fieldType: FieldType;
   value: any;
 }) {
-  if (fieldType === FieldType.SELECT_SINGLE) {
+  if (value && fieldType === FieldType.SELECT_SINGLE) {
     return (
       <AutoLayout width={widthForFieldType(fieldType)}>
-        {value && <Pill value={value} />}
+        <Pill value={value} />
       </AutoLayout>
     );
   }
@@ -287,13 +287,13 @@ function Table() {
     [
       {
         itemType: "action",
-        tooltip: "Edit Table Schema",
-        propertyName: "editSchema",
+        tooltip: "Add Row",
+        propertyName: "newRow",
       },
       {
         itemType: "action",
-        tooltip: "Add Row",
-        propertyName: "newRow",
+        tooltip: "Edit Table Schema",
+        propertyName: "editSchema",
       },
     ],
     ({ propertyName }) => {
@@ -337,7 +337,7 @@ function Table() {
       <AutoLayout
         direction="vertical"
         spacing={8}
-        padding={{ left: 15, bottom: 20 }}
+        padding={{ horizontal: 15, bottom: 20 }}
       >
         <AutoLayout spacing={SPACING_HORIZONTAL}>
           <RowIdx idx={0} />
@@ -381,6 +381,33 @@ function Table() {
               </AutoLayout>
             );
           })}
+          <AutoLayout
+            width="fill-parent"
+            fill={{
+              type: "solid",
+              opacity: 0.5,
+              color: {
+                r: 0.6588332653045654,
+                g: 0.24583333730697632,
+                b: 0.9833333492279053,
+                a: 0.14000000059604645,
+              },
+            }}
+            cornerRadius={20}
+            padding={10}
+            horizontalAlignItems="center"
+            verticalAlignItems="center"
+            onClick={() => {
+              return showUIWithPayload({
+                type: "NEW_ROW",
+                fields: tableSchema,
+              });
+            }}
+          >
+            <Text fontSize={12} fontFamily="Inter">
+              New Row
+            </Text>
+          </AutoLayout>
         </AutoLayout>
       </AutoLayout>
     </AutoLayout>
