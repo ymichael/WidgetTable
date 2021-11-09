@@ -89,11 +89,13 @@ function widthForFieldType(fieldType: FieldType): number {
     case FieldType.TEXT_MULTI_LINE:
       return 250;
     case FieldType.SELECT_MULTIPLE:
-      return 120;
-    case FieldType.TEXT_SINGLE_LINE:
+      return 80;
     case FieldType.SELECT_SINGLE:
-    case FieldType.URL:
     case FieldType.CHECKBOX:
+      return 60;
+    case FieldType.URL:
+      return 150;
+    case FieldType.TEXT_SINGLE_LINE:
       return 80;
     default:
       assertUnreachable(fieldType);
@@ -113,6 +115,7 @@ function ColumnHeader({
       fontSize={10}
       fontFamily="Inter"
       fontWeight="semi-bold"
+      horizontalAlignText="left"
       width={widthForFieldType(fieldType)}
       fill={{
         type: "solid",
@@ -140,6 +143,21 @@ function RowIdx({ idx }: { idx: number }) {
   );
 }
 
+function Pill({ value }: { key?: string; value: string }) {
+  return (
+    <AutoLayout
+      cornerRadius={10}
+      fill="#EEE"
+      width="hug-contents"
+      padding={{ horizontal: 10, vertical: 5 }}
+    >
+      <Text fontSize={12} fontFamily="Inter" fontWeight={400} fill="#2A2A2A">
+        {value}
+      </Text>
+    </AutoLayout>
+  );
+}
+
 function CellValue({
   fieldType,
   value,
@@ -148,6 +166,28 @@ function CellValue({
   fieldType: FieldType;
   value: any;
 }) {
+  if (fieldType === FieldType.SELECT_SINGLE) {
+    return (
+      <AutoLayout width={widthForFieldType(fieldType)}>
+        {value && <Pill value={value} />}
+      </AutoLayout>
+    );
+  }
+  if (fieldType === FieldType.SELECT_MULTIPLE) {
+    return (
+      <AutoLayout spacing={5} width={widthForFieldType(fieldType)}>
+        {value?.map((v, idx) => (
+          <Pill key={idx} value={v} />
+        ))}
+      </AutoLayout>
+    );
+  }
+
+  const additionalProps: any = {};
+  if (value && fieldType === FieldType.URL) {
+    additionalProps["href"] = value;
+  }
+
   return (
     <Text
       fontSize={12}
@@ -155,6 +195,7 @@ function CellValue({
       fontWeight={400}
       width={widthForFieldType(fieldType)}
       fill="#2A2A2A"
+      {...additionalProps}
     >
       {fieldType === FieldType.CHECKBOX ? !!value : value ?? ""}
     </Text>
@@ -162,7 +203,7 @@ function CellValue({
 }
 
 const SPACING_VERTICAL = 15;
-const SPACING_HORIZONTAL = 30;
+const SPACING_HORIZONTAL = 20;
 const IFRAME_WIDTH = 500;
 
 const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
