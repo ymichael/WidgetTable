@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useRef, useEffect } from "react";
 import * as yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { FieldRow, Button } from "./FieldRow";
@@ -15,6 +16,12 @@ export default function TableNameEditor({
   name: string;
   onSubmit: (v: { name: string }) => void;
 }) {
+  const inputEl = useRef<any>(null);
+  useEffect(() => {
+    if (inputEl.current) {
+      inputEl.current.focus();
+    }
+  }, []);
   return (
     <div className={styles.TableNameEditor}>
       <Formik
@@ -40,6 +47,7 @@ export default function TableNameEditor({
                     <Field
                       name="name"
                       type="text"
+                      innerRef={inputEl}
                       style={{
                         flexBasis: "65%",
                       }}
