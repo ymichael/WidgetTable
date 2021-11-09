@@ -157,19 +157,20 @@ const SPACING_VERTICAL = 15;
 const SPACING_HORIZONTAL = 30;
 const IFRAME_WIDTH = 500;
 
-const showUIWithPayload = (payload: WidgetToIFrameMessage) => {
-  figma.showUI(
-    `
-  <script>
-    window.widgetPayload = ${JSON.stringify(payload)};
-  </script>
-  ${__html__}
-`,
-    {
-      width: IFRAME_WIDTH,
-      height: 600,
-    }
-  );
+const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
+  return new Promise(() => {
+    figma.showUI(
+      `<script>
+          window.widgetPayload = ${JSON.stringify(payload)};
+        </script>
+        ${__html__}
+      `,
+      {
+        width: IFRAME_WIDTH,
+        height: 600,
+      }
+    );
+  });
 };
 
 function Table() {
@@ -226,15 +227,22 @@ function Table() {
     ],
     ({ propertyName }) => {
       if (propertyName === "editSchema") {
-        showUIWithPayload({
+        return showUIWithPayload({
           type: "EDIT_SCHEMA",
           table: {
             name: syncedTable.getTitle(),
             fields: tableSchema,
           },
         });
+      } else if (propertyName === "newRow") {
+        return showUIWithPayload({
+          type: "NEW_ROW",
+          table: {
+            name: syncedTable.getTitle(),
+            fields: tableSchema,
+          },
+        });
       }
-      return new Promise(() => {});
     }
   );
 

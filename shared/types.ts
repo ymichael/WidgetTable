@@ -38,7 +38,12 @@ export type WidgetToIFrameMessage =
       table: Table;
     }
   | {
+      type: "NEW_ROW";
+      table: Table;
+    }
+  | {
       type: "EDIT_ROW";
+      table: Table;
       row: TRow;
     };
 
