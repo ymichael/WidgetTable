@@ -53,6 +53,7 @@ export default function CustomMultiSelectTextInput({
         switch (event.key) {
           case "Enter":
           case "Tab":
+          case ",":
             const newValue = createOption(inputValue);
             setValue((value) => [...value, newValue]);
             setInputValue("");

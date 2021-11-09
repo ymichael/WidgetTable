@@ -163,21 +163,23 @@ function CellValue({
   fieldType: FieldType;
   value: any;
 }) {
-  if (value && fieldType === FieldType.SELECT_SINGLE) {
-    return (
-      <AutoLayout width={widthForFieldType(fieldType)}>
-        <Pill value={value} />
-      </AutoLayout>
-    );
-  }
-  if (fieldType === FieldType.SELECT_MULTIPLE) {
-    return (
-      <AutoLayout spacing={5} width={widthForFieldType(fieldType)}>
-        {value?.map((v, idx) => (
-          <Pill key={idx} value={v} />
-        ))}
-      </AutoLayout>
-    );
+  if (value) {
+    if (fieldType === FieldType.SELECT_SINGLE) {
+      return (
+        <AutoLayout width={widthForFieldType(fieldType)}>
+          <Pill value={value} />
+        </AutoLayout>
+      );
+    }
+    if (fieldType === FieldType.SELECT_MULTIPLE) {
+      return (
+        <AutoLayout spacing={5} width={widthForFieldType(fieldType)}>
+          {value?.map((v, idx) => (
+            <Pill key={idx} value={v} />
+          ))}
+        </AutoLayout>
+      );
+    }
   }
 
   const additionalProps: any = {};
