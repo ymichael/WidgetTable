@@ -12,13 +12,14 @@ import styles from "./RowEditor.module.css";
 export default function RowEditor({
   initialValues = {},
   tableSchema,
+  isEdit,
 }: {
   initialValues: { [key: string]: any };
   tableSchema: TableField[];
+  isEdit: boolean;
 }) {
   return (
     <div className={styles.RowEditor}>
-      <h1>Edit Row</h1>
       <Formik
         initialValues={initialValues}
         onSubmit={(values, { setSubmitting }) => {
@@ -29,6 +30,31 @@ export default function RowEditor({
         {(formik) => {
           return (
             <Form onSubmit={formik.handleSubmit}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <h1>{isEdit ? "Edit Row" : "Add Row"}</h1>
+                <ButtonRow>
+                  {isEdit ? (
+                    <>
+                      <button type="submit" disabled={!formik.isValid}>
+                        Update
+                      </button>
+                      <button type="submit" disabled={!formik.isValid}>
+                        Save as new
+                      </button>
+                    </>
+                  ) : (
+                    <button type="submit" disabled={!formik.isValid}>
+                      Add Row
+                    </button>
+                  )}
+                </ButtonRow>
+              </div>
               {tableSchema.map((field) => {
                 // TODO (sanitize?)
                 const fieldKey = field.fieldName;
@@ -40,7 +66,7 @@ export default function RowEditor({
                     return (
                       <FieldRow
                         key={fieldKey}
-                        fieldName={field.fieldName}
+                        fieldName={field.fieldId}
                         fieldLabel={field.fieldName}
                       />
                     );
@@ -48,7 +74,7 @@ export default function RowEditor({
                     return (
                       <FieldRow
                         key={fieldKey}
-                        fieldName={field.fieldName}
+                        fieldName={field.fieldId}
                         fieldLabel={field.fieldName}
                         fieldAs="textarea"
                       />
@@ -57,7 +83,7 @@ export default function RowEditor({
                     return (
                       <FieldRow
                         key={fieldKey}
-                        fieldName={field.fieldName}
+                        fieldName={field.fieldId}
                         fieldLabel={field.fieldName}
                         fieldType="checkbox"
                       />
@@ -67,32 +93,24 @@ export default function RowEditor({
                     return (
                       <FieldRow
                         key={fieldKey}
-                        fieldName={field.fieldName}
+                        fieldName={field.fieldId}
                         fieldLabel={field.fieldName}
                       >
                         <Field
-                          name={field.fieldName}
+                          name={field.fieldId}
                           component={CustomSelect}
                           options={field.fieldOptions.map((opt) => {
                             return { value: opt, label: opt };
                           })}
                           isMulti={fieldType === FieldType.SELECT_MULTIPLE}
                         />
-                        <ErrorMessage name={field.fieldName} />
+                        <ErrorMessage name={field.fieldId} />
                       </FieldRow>
                     );
                   default:
                     assertUnreachable(fieldType);
                 }
               })}
-              <ButtonRow>
-                <button type="submit" disabled={!formik.isValid}>
-                  Update
-                </button>
-                <button type="submit" disabled={!formik.isValid}>
-                  Save as new
-                </button>
-              </ButtonRow>
             </Form>
           );
         }}

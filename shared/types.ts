@@ -37,15 +37,15 @@ export type TRow = {
 export type WidgetToIFrameMessage =
   | {
       type: "EDIT_SCHEMA";
-      table: Table;
+      fields: TableField[];
     }
   | {
       type: "NEW_ROW";
-      table: Table;
+      fields: TableField[];
     }
   | {
       type: "EDIT_ROW";
-      table: Table;
+      fields: TableField[];
       row: TRow;
     };
 

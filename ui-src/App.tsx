@@ -27,19 +27,17 @@ const TEST_TABLE: Table = {
   ],
 };
 
-const TEST_DATA = {
-  title: "Hello Widgets",
-  published: true,
-};
-
 const widgetPayload: WidgetToIFrameMessage | undefined = (window as any)
   .widgetPayload;
 const showSchemaEditor = !!widgetPayload
   ? widgetPayload.type === "EDIT_SCHEMA"
   : /schema=1/.test(window.location.search);
 
-const schema: Pick<Table, "fields"> =
-  widgetPayload?.type === "EDIT_SCHEMA" ? widgetPayload.table : TEST_TABLE;
+const schema: Pick<Table, "fields"> = !!widgetPayload
+  ? { fields: widgetPayload.fields }
+  : TEST_TABLE;
+const data =
+  widgetPayload?.type === "EDIT_ROW" ? widgetPayload.row.rowData : {};
 
 function App() {
   return (
@@ -52,7 +50,11 @@ function App() {
           }}
         />
       ) : (
-        <RowEditor tableSchema={TEST_TABLE.fields} initialValues={TEST_DATA} />
+        <RowEditor
+          tableSchema={schema.fields}
+          initialValues={data}
+          isEdit={widgetPayload?.type === "EDIT_ROW"}
+        />
       )}
     </div>
   );

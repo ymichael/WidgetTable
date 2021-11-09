@@ -170,7 +170,7 @@ const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
       `,
       {
         width: IFRAME_WIDTH,
-        height: 600,
+        height: payload.type === "EDIT_SCHEMA" ? 600 : 308,
       }
     );
   });
@@ -205,7 +205,7 @@ function Table() {
     figma.ui.onmessage = (msg: IFrameToWidgetMessage) => {
       switch (msg.type) {
         case "RESIZE":
-          figma.ui.resize(IFRAME_WIDTH, Math.round(msg.height));
+          figma.ui.resize(IFRAME_WIDTH, Math.min(600, Math.round(msg.height)));
           break;
         default:
           console.log("Unhandled msg:", msg);
@@ -229,18 +229,12 @@ function Table() {
       if (propertyName === "editSchema") {
         return showUIWithPayload({
           type: "EDIT_SCHEMA",
-          table: {
-            name: syncedTable.getTitle(),
-            fields: tableSchema,
-          },
+          fields: tableSchema,
         });
       } else if (propertyName === "newRow") {
         return showUIWithPayload({
           type: "NEW_ROW",
-          table: {
-            name: syncedTable.getTitle(),
-            fields: tableSchema,
-          },
+          fields: tableSchema,
         });
       }
     }
@@ -289,7 +283,20 @@ function Table() {
         <AutoLayout direction="vertical" spacing={SPACING_VERTICAL}>
           {syncedTable.getRows().map(([rowKey, row], idx) => {
             return (
-              <AutoLayout spacing={SPACING_HORIZONTAL} key={rowKey}>
+              <AutoLayout
+                spacing={SPACING_HORIZONTAL}
+                key={rowKey}
+                onClick={() => {
+                  return showUIWithPayload({
+                    type: "EDIT_ROW",
+                    fields: tableSchema,
+                    row: {
+                      rowId: rowKey,
+                      rowData: row,
+                    },
+                  });
+                }}
+              >
                 <RowIdx idx={idx + 1} />
                 {tableSchema.map((field) => {
                   return (
