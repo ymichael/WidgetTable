@@ -51,6 +51,10 @@ class SyncedTable {
     this.rows.set(`${this.genRowId()}`, rowData);
   }
 
+  updateRow(rowId: string, rowData: TRow["rowData"]): void {
+    this.rows.set(rowId, rowData);
+  }
+
   deleteRow(rowId: string): void {
     this.rows.delete(rowId);
   }
@@ -83,8 +87,9 @@ const DEFAULT_SCHEMA: TableField[] = [
 function widthForFieldType(fieldType: FieldType): number {
   switch (fieldType) {
     case FieldType.TEXT_MULTI_LINE:
-    case FieldType.SELECT_MULTIPLE:
       return 250;
+    case FieldType.SELECT_MULTIPLE:
+      return 120;
     case FieldType.TEXT_SINGLE_LINE:
     case FieldType.SELECT_SINGLE:
     case FieldType.URL:
@@ -207,8 +212,33 @@ function Table() {
         case "RESIZE":
           figma.ui.resize(IFRAME_WIDTH, Math.min(600, Math.round(msg.height)));
           break;
+        case "NEW_ROW":
+          syncedTable.appendRow(msg.row.rowData);
+          if (!msg.fromEdit) {
+            figma.closePlugin();
+          }
+          break;
+        case "EDIT_ROW":
+          syncedTable.updateRow(msg.row.rowId, msg.row.rowData);
+          figma.closePlugin();
+          break;
+        case "DELETE_ROW":
+          syncedTable.deleteRow(msg.row.rowId);
+          figma.closePlugin();
+          break;
+        case "UPDATE_SCHEMA":
+          setTableSchema(
+            msg.fields.map((field) => {
+              if (!field.fieldId) {
+                field.fieldId = field.fieldName.toLowerCase();
+              }
+              return field;
+            })
+          );
+          figma.closePlugin();
+          break;
         default:
-          console.log("Unhandled msg:", msg);
+          assertUnreachable(msg);
       }
     };
   });

@@ -57,7 +57,7 @@ export type IFrameToWidgetMessage =
     }
   | {
       type: "UPDATE_SCHEMA";
-      table: Table;
+      fields: TableField[];
     }
   | {
       type: "EDIT_ROW";
@@ -65,5 +65,10 @@ export type IFrameToWidgetMessage =
     }
   | {
       type: "NEW_ROW";
+      fromEdit: boolean;
       row: Pick<TRow, "rowData">;
+    }
+  | {
+      type: "DELETE_ROW";
+      row: Pick<TRow, "rowId">;
     };

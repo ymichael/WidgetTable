@@ -13,17 +13,27 @@ export default function RowEditor({
   initialValues = {},
   tableSchema,
   isEdit,
+  onEdit,
+  onDelete,
+  onCreate,
 }: {
   initialValues: { [key: string]: any };
   tableSchema: TableField[];
   isEdit: boolean;
+  onEdit: (v: { [key: string]: any }) => void;
+  onDelete: () => void;
+  onCreate: (v: { [key: string]: any }) => void;
 }) {
   return (
     <div className={styles.RowEditor}>
       <Formik
         initialValues={initialValues}
         onSubmit={(values, { setSubmitting }) => {
-          console.log(values);
+          if (isEdit) {
+            onEdit(values);
+          } else {
+            onCreate(values);
+          }
           setSubmitting(false);
         }}
       >
@@ -44,8 +54,25 @@ export default function RowEditor({
                       <button type="submit" disabled={!formik.isValid}>
                         Update
                       </button>
-                      <button type="submit" disabled={!formik.isValid}>
+                      <button
+                        type="button"
+                        disabled={!formik.isValid}
+                        onClick={() => {
+                          if (formik.isValid) {
+                            onCreate(formik.values);
+                          }
+                        }}
+                      >
                         Save as new
+                      </button>
+                      <button
+                        type="button"
+                        style={{ color: "#f10d0d" }}
+                        onDoubleClick={() => {
+                          onDelete();
+                        }}
+                      >
+                        Delete
                       </button>
                     </>
                   ) : (

@@ -24,12 +24,14 @@ const createOption = (label: string) => ({
 });
 
 export default function CustomMultiSelectTextInput({
+  initialValue,
   onChange,
 }: {
+  initialValue: string[];
   onChange: (value: string[]) => void;
 }) {
   const [inputValue, setInputValue] = useState<string>("");
-  const [value, setValue] = useState<Option[]>([]);
+  const [value, setValue] = useState<Option[]>(initialValue.map(createOption));
   useEffect(() => {
     onChange(value.map((x) => x.value));
   }, [value]);
