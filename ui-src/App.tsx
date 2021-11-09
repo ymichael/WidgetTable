@@ -48,8 +48,6 @@ const tableName =
 const rowData =
   widgetPayload?.type === "EDIT_ROW" ? widgetPayload.row.rowData : {};
 
-console.log(tableSchema);
-
 function App() {
   return (
     <div className={styles.App}>
