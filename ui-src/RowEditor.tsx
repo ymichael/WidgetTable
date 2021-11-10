@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as yup from "yup";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 
 import { TableField, FieldType } from "../shared/types";
@@ -9,6 +10,43 @@ import CustomSelect from "./input/CustomSelect";
 import AutoSubmitter from "./AutoSubmitter";
 
 import styles from "./RowEditor.module.css";
+
+function generateValidationSchemaFromTableSchema(
+  tableSchema: TableField[]
+): yup.BaseSchema {
+  let yupSchema = yup.object();
+  tableSchema.forEach((field) => {
+    switch (field.fieldType) {
+      case FieldType.TEXT_SINGLE_LINE:
+      case FieldType.TEXT_MULTI_LINE:
+        yupSchema = yupSchema.shape({ [field.fieldId]: yup.string() });
+        break;
+      case FieldType.URL:
+        yupSchema = yupSchema.shape({
+          [field.fieldId]: yup.string().url("Please specify a valid url."),
+        });
+        break;
+      case FieldType.CHECKBOX:
+        yupSchema = yupSchema.shape({ [field.fieldId]: yup.boolean() });
+        break;
+      case FieldType.SELECT_SINGLE:
+        yupSchema = yupSchema.shape({
+          [field.fieldId]: yup.string().oneOf(field.fieldOptions),
+        });
+        break;
+      case FieldType.SELECT_MULTIPLE:
+        yupSchema = yupSchema.shape({
+          [field.fieldId]: yup
+            .array()
+            .of(yup.string().oneOf(field.fieldOptions)),
+        });
+        break;
+      default:
+        assertUnreachable(field);
+    }
+  });
+  return yupSchema;
+}
 
 export default function RowEditor({
   initialValues = {},
@@ -29,6 +67,7 @@ export default function RowEditor({
     <div className={styles.RowEditor}>
       <Formik
         initialValues={initialValues}
+        validationSchema={generateValidationSchemaFromTableSchema(tableSchema)}
         onSubmit={(values, { setSubmitting }) => {
           if (isEdit) {
             onEdit(values, true);

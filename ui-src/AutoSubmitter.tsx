@@ -6,6 +6,7 @@ type AutoSubmitterProps = {
     values: any;
     validateForm: Function;
     isValid: boolean;
+    isValidating: boolean;
   };
   onAutoSubmit: (v: any) => void;
 };
@@ -19,6 +20,9 @@ export default class AutoSubmitter extends React.Component<AutoSubmitterProps> {
   }
 
   componentDidUpdate(prevProps: AutoSubmitterProps) {
+    if (this.props.formik.isValidating) {
+      return;
+    }
     if (!this.props.formik.isValid) {
       return;
     }
