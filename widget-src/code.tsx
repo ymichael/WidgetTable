@@ -5,9 +5,10 @@ import {
   IFrameToWidgetMessage,
   WidgetToIFrameMessage,
 } from "../shared/types";
+import { DEFAULT_SCHEMA } from "./constants";
 import { checkedSvg, uncheckedSvg } from "./svgSrc";
 import { assertUnreachable } from "../shared/utils";
-import fractionalIndex from "./fractional-indexing";
+import SyncedTable from "./syncedTable";
 
 const { widget } = figma;
 const {
@@ -21,131 +22,9 @@ const {
   usePropertyMenu,
 } = widget;
 
-class SyncedTable {
-  ROW_AUTO_INCR_KEY = "row-auto-incr-key";
-  TABLE_TITLE_KEY = "table-title-key";
-
-  constructor(
-    private schema: TableField[],
-    private metadata: SyncedMap<any>,
-    private rows: SyncedMap<TRow["rowData"]>,
-    private votes: SyncedMap<boolean>
-  ) {}
-
-  private genRowId(): number {
-    const currKey = this.metadata.get(this.ROW_AUTO_INCR_KEY) || "a0";
-    const nextRowId = fractionalIndex(String(currKey), null);
-    this.metadata.set(this.ROW_AUTO_INCR_KEY, nextRowId);
-    return nextRowId;
-  }
-
-  getTitle(): string {
-    return this.metadata.get(this.TABLE_TITLE_KEY) || "";
-  }
-
-  setTitle(name: string): void {
-    this.metadata.set(this.TABLE_TITLE_KEY, name);
-  }
-
-  appendRow(rowData: TRow["rowData"]): void {
-    this.rows.set(`${this.genRowId()}`, rowData);
-  }
-
-  updateRow(rowId: string, rowData: TRow["rowData"]): void {
-    this.rows.set(rowId, rowData);
-  }
-
-  deleteRow(rowId: string): void {
-    this.rows.delete(rowId);
-  }
-
-  getVotesMap(): { [rowId: string]: { [fieldId: string]: number } } {
-    const votesMap = {};
-    this.votes.keys().forEach((voteKey) => {
-      const { rowId, fieldId, userId } = this.fromVoteKey(voteKey);
-      votesMap[rowId] = votesMap[rowId] || {};
-      votesMap[rowId][fieldId] = votesMap[rowId][fieldId] || 0;
-      votesMap[rowId][fieldId] += 1;
-    });
-    return votesMap;
-  }
-
-  private fromVoteKey(voteKey: string): {
-    rowId: string;
-    fieldId: string;
-    userId: string;
-  } {
-    const [rowId, fieldId, userId] = voteKey.split(":", 3);
-    return { rowId, fieldId, userId };
-  }
-
-  private toVoteKey({
-    rowId,
-    fieldId,
-    userId,
-  }: {
-    rowId: string;
-    fieldId: string;
-    userId: string;
-  }): string {
-    return `${rowId}:${fieldId}:${userId}`;
-  }
-
-  setRowFieldValue({
-    rowId,
-    fieldId,
-    value,
-  }: {
-    rowId: string;
-    fieldId: string;
-    value: any;
-  }): void {
-    this.rows.set(rowId, {
-      ...this.rows.get(rowId),
-      [fieldId]: value,
-    });
-  }
-
-  toggleVote(args: { rowId: string; fieldId: string; userId: string }): void {
-    const voteKey = this.toVoteKey(args);
-    if (this.votes.get(voteKey)) {
-      this.votes.delete(voteKey);
-    } else {
-      this.votes.set(voteKey, true);
-    }
-  }
-
-  getRows(): [string, TRow["rowData"]][] {
-    const votesMap = this.getVotesMap();
-    const rowKeys = this.rows.keys();
-    rowKeys.sort();
-    return rowKeys.map((k) => {
-      const rowData = {
-        ...this.rows.get(k),
-        ...votesMap[k],
-      };
-      return [k, rowData];
-    });
-  }
-}
-
-const DEFAULT_SCHEMA: TableField[] = [
-  {
-    fieldId: "title",
-    fieldName: "Title",
-    fieldType: FieldType.TEXT_SINGLE_LINE,
-  },
-  {
-    fieldId: "desc",
-    fieldName: "Description",
-    fieldType: FieldType.TEXT_MULTI_LINE,
-  },
-  {
-    fieldId: "completed",
-    fieldName: "Completed",
-    fieldType: FieldType.CHECKBOX,
-  },
-];
+const SPACING_VERTICAL = 15;
+const SPACING_HORIZONTAL = 20;
+const IFRAME_WIDTH = 500;
 
 function widthForFieldType(fieldType: FieldType): number {
   switch (fieldType) {
@@ -167,6 +46,33 @@ function widthForFieldType(fieldType: FieldType): number {
       assertUnreachable(fieldType);
   }
 }
+
+function getInitialHeightForPayload(payload: WidgetToIFrameMessage): number {
+  switch (payload.type) {
+    case "EDIT_SCHEMA":
+      return 600;
+    case "RENAME_TABLE":
+      return 200;
+    default:
+      return 308;
+  }
+}
+
+const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
+  return new Promise(() => {
+    figma.showUI(
+      `<script>
+          window.widgetPayload = ${JSON.stringify(payload)};
+        </script>
+        ${__html__}
+      `,
+      {
+        width: IFRAME_WIDTH,
+        height: getInitialHeightForPayload(payload),
+      }
+    );
+  });
+};
 
 function ColumnHeader({
   fieldType,
@@ -326,36 +232,36 @@ function CellValue({
   );
 }
 
-const SPACING_VERTICAL = 15;
-const SPACING_HORIZONTAL = 20;
-const IFRAME_WIDTH = 500;
-
-function getInitialHeightForPayload(payload: WidgetToIFrameMessage): number {
-  switch (payload.type) {
-    case "EDIT_SCHEMA":
-      return 600;
-    case "RENAME_TABLE":
-      return 200;
-    default:
-      return 308;
-  }
+function ButtonRow({
+  onClick,
+  width = "fill-parent",
+  children,
+}: {
+  width?: "fill-parent" | "hug-contents" | number;
+  onClick: () => void;
+  children?: any;
+  key?: any;
+}) {
+  return (
+    <AutoLayout
+      width={width}
+      fill={{
+        type: "solid",
+        opacity: 0.12,
+        color: { r: 0.65, g: 0.24, b: 0.98, a: 1 },
+      }}
+      cornerRadius={20}
+      padding={10}
+      horizontalAlignItems="center"
+      verticalAlignItems="center"
+      onClick={onClick}
+    >
+      <Text fontSize={12} fontFamily="Inter">
+        {children}
+      </Text>
+    </AutoLayout>
+  );
 }
-
-const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
-  return new Promise(() => {
-    figma.showUI(
-      `<script>
-          window.widgetPayload = ${JSON.stringify(payload)};
-        </script>
-        ${__html__}
-      `,
-      {
-        width: IFRAME_WIDTH,
-        height: getInitialHeightForPayload(payload),
-      }
-    );
-  });
-};
 
 function TableFrame({
   headerChildren,
@@ -392,37 +298,6 @@ function TableFrame({
       >
         {children}
       </AutoLayout>
-    </AutoLayout>
-  );
-}
-
-function ButtonRow({
-  onClick,
-  width = "fill-parent",
-  children,
-}: {
-  width?: "fill-parent" | "hug-contents" | number;
-  onClick: () => void;
-  children?: any;
-  key?: any;
-}) {
-  return (
-    <AutoLayout
-      width={width}
-      fill={{
-        type: "solid",
-        opacity: 0.12,
-        color: { r: 0.65, g: 0.24, b: 0.98, a: 1 },
-      }}
-      cornerRadius={20}
-      padding={10}
-      horizontalAlignItems="center"
-      verticalAlignItems="center"
-      onClick={onClick}
-    >
-      <Text fontSize={12} fontFamily="Inter">
-        {children}
-      </Text>
     </AutoLayout>
   );
 }
