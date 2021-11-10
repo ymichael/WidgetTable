@@ -89,6 +89,7 @@ function widthForFieldType(fieldType: FieldType): number {
       return 80;
     case FieldType.SELECT_SINGLE:
     case FieldType.CHECKBOX:
+    case FieldType.NUMBER:
       return 60;
     case FieldType.URL:
     case FieldType.EMAIL:
