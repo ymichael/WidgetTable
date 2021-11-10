@@ -5,20 +5,16 @@ import fractionalIndex from "./fractional-indexing";
 export default class SyncedTable {
   ROW_AUTO_INCR_KEY = "row-auto-incr-key";
   TABLE_TITLE_KEY = "table-title-key";
+  TABLE_SCHEMA_KEY = "table-schema-key";
 
   private nonVoteFieldIds: Set<string>;
 
   constructor(
-    private schema: TableField[],
     private metadata: SyncedMap<any>,
     private rows: SyncedMap<TRow["rowData"]>,
     private votes: SyncedMap<boolean>
   ) {
-    this.nonVoteFieldIds = new Set(
-      this.schema
-        .filter((f) => f.fieldType !== FieldType.VOTE)
-        .map((f) => f.fieldId)
-    );
+    this.updateNonVoteFieldIds();
   }
 
   private genRowId(): number {
@@ -26,6 +22,23 @@ export default class SyncedTable {
     const nextRowId = fractionalIndex(String(currKey), null);
     this.metadata.set(this.ROW_AUTO_INCR_KEY, nextRowId);
     return nextRowId;
+  }
+
+  private updateNonVoteFieldIds(): void {
+    this.nonVoteFieldIds = new Set(
+      this.schema
+        .filter((f) => f.fieldType !== FieldType.VOTE)
+        .map((f) => f.fieldId)
+    );
+  }
+
+  get schema(): TableField[] {
+    return this.metadata.get(this.TABLE_SCHEMA_KEY) || []
+  }
+
+  setSchema(schema: TableField[]): void {
+    this.metadata.set(this.TABLE_SCHEMA_KEY, schema)
+    this.updateNonVoteFieldIds();
   }
 
   getTitle(): string {

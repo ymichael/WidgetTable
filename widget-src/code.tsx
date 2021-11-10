@@ -36,20 +36,18 @@ function isSticky(node: SceneNode): node is StickyNode {
 
 function importStickies(
   syncedTable: SyncedTable,
-  setTableSchema: (schema: TableField[]) => void,
   stickies: StickyNode[]
 ): void {
+  const hasVisibleAuthor = stickies.some(x => x.authorVisible);
+  syncedTable.setSchema(hasVisibleAuthor ? STICKY_SCHEMA : STICKY_NO_AUTHOR_SCHEMA);
   syncedTable.setTitle("Stickies");
-  let hasVisibleAuthor = false;
   stickies.forEach((sticky) => {
-    hasVisibleAuthor = hasVisibleAuthor || sticky.authorVisible;
     syncedTable.appendRow({
       text: sticky.text.characters,
       // @ts-expect-error
       author: sticky.authorVisible ? sticky.authorName : "",
     });
   });
-  setTableSchema(hasVisibleAuthor ? STICKY_SCHEMA : STICKY_NO_AUTHOR_SCHEMA);
 }
 
 function widthForFieldType(fieldType: FieldType): number {
@@ -324,7 +322,7 @@ function TableFrame({
 }
 
 function Table() {
-  const [tableSchema, setTableSchema] = useSyncedState<TableField[]>(
+  const [tableSchemaDeprecated, setTableSchemaDeprecated] = useSyncedState<TableField[]>(
     "tableSchema",
     []
   );
@@ -332,11 +330,19 @@ function Table() {
   const tableVotes = useSyncedMap<boolean>("tableVotes");
   const tableRows = useSyncedMap<TRow["rowData"]>("tableRows");
   const syncedTable = new SyncedTable(
-    tableSchema,
     tableMetadata,
     tableRows,
     tableVotes
   );
+  const tableSchema = syncedTable.schema;
+
+  // temp
+  useEffect(() => {
+    if (tableSchemaDeprecated.length > 0 && syncedTable.schema.length === 0) {
+      syncedTable.setSchema(tableSchemaDeprecated)
+      setTableSchemaDeprecated([])
+    }
+  })
 
   const showInitialState = tableSchema.length === 0;
   useEffect(() => {
@@ -368,7 +374,7 @@ function Table() {
           }
           break;
         case "UPDATE_SCHEMA":
-          setTableSchema(
+          syncedTable.setSchema(
             msg.fields.map((field) => {
               if (!field.fieldId) {
                 field.fieldId = field.fieldName.toLowerCase();
@@ -428,7 +434,7 @@ function Table() {
           <ButtonRow
             width={400}
             onClick={() => {
-              setTableSchema(DEFAULT_SCHEMA);
+              syncedTable.setSchema(DEFAULT_SCHEMA);
               return showUIWithPayload({
                 type: "EDIT_SCHEMA",
                 fields: DEFAULT_SCHEMA,
@@ -443,7 +449,7 @@ function Table() {
               const stickies = figma.currentPage.findChildren(
                 isSticky
               ) as StickyNode[];
-              importStickies(syncedTable, setTableSchema, stickies);
+              importStickies(syncedTable, stickies);
             }}
           >
             {"All Stickies -> Table"}
@@ -457,7 +463,7 @@ function Table() {
                 figma.notify("Select Stickies to populate table");
                 return;
               }
-              importStickies(syncedTable, setTableSchema, stickies);
+              importStickies(syncedTable, stickies);
             }}
           >
             {"Selected Stickies -> Table"}
