@@ -503,7 +503,7 @@ function Table() {
       <AutoLayout
         direction="vertical"
         spacing={SPACING_VERTICAL}
-        padding={{ bottom: 20 }}
+        padding={{ bottom: 20, right: 10 }}
       >
         <Frame name="Spacer" width={200} height={1} />
         {syncedTable.getRows().map(([rowKey, row], idx) => {
