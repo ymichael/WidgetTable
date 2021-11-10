@@ -65,9 +65,8 @@ function widthForFieldType(fieldType: FieldType): number {
       return 60;
     case FieldType.URL:
     case FieldType.EMAIL:
-      return 150;
     case FieldType.TEXT_SINGLE_LINE:
-      return 80;
+      return 150;
     default:
       assertUnreachable(fieldType);
   }
