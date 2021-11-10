@@ -12,10 +12,11 @@ type AutoSubmitterProps = {
 };
 
 export default class AutoSubmitter extends React.Component<AutoSubmitterProps> {
-  // private onAutoSubmitDebounced: AutoSubmitterProps["onAutoSubmit"];
+  private lastSubmittedValues: any;
 
   constructor(props: AutoSubmitterProps) {
     super(props);
+    this.lastSubmittedValues = null;
   }
 
   componentDidUpdate = debounce(
@@ -23,14 +24,11 @@ export default class AutoSubmitter extends React.Component<AutoSubmitterProps> {
       if (this.props.formik.isValidating || !this.props.formik.isValid) {
         return;
       }
-      if (
-        !prevProps.formik.isValidating &&
-        prevProps.formik.isValid &&
-        isEqual(prevProps.formik.values, this.props.formik.values)
-      ) {
+      if (isEqual(this.lastSubmittedValues, this.props.formik.values)) {
         return;
       }
-      this.props.onAutoSubmit(this.props.formik.values);
+      this.lastSubmittedValues = this.props.formik.values;
+      this.props.onAutoSubmit(this.lastSubmittedValues);
     },
     100,
     { maxWait: 1000 }
