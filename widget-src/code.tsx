@@ -5,12 +5,14 @@ import {
   IFrameToWidgetMessage,
   WidgetToIFrameMessage,
 } from "../shared/types";
+import { checkedSvg, uncheckedSvg } from "./svgSrc";
 import { assertUnreachable } from "../shared/utils";
 import fractionalIndex from "./fractional-indexing";
 
 const { widget } = figma;
 const {
   AutoLayout,
+  SVG,
   Frame,
   Text,
   useSyncedState,
@@ -87,6 +89,21 @@ class SyncedTable {
     userId: string;
   }): string {
     return `${rowId}:${fieldId}:${userId}`;
+  }
+
+  setRowFieldValue({
+    rowId,
+    fieldId,
+    value,
+  }: {
+    rowId: string;
+    fieldId: string;
+    value: any;
+  }): void {
+    this.rows.set(rowId, {
+      ...this.rows.get(rowId),
+      [fieldId]: value,
+    });
   }
 
   toggleVote(args: { rowId: string; fieldId: string; userId: string }): void {
@@ -269,6 +286,25 @@ function CellValue({
     );
   }
 
+  if (fieldType === FieldType.CHECKBOX) {
+    return (
+      <AutoLayout width={widthForFieldType(fieldType)}>
+        <SVG
+          width={20}
+          height={20}
+          src={!!value ? checkedSvg : uncheckedSvg}
+          onClick={() => {
+            syncedTable.setRowFieldValue({
+              rowId: rowKey,
+              fieldId,
+              value: !value,
+            });
+          }}
+        />
+      </AutoLayout>
+    );
+  }
+
   const additionalProps: any = {};
   if (value && fieldType === FieldType.URL) {
     additionalProps["href"] = value;
@@ -285,7 +321,7 @@ function CellValue({
       fill="#2A2A2A"
       {...additionalProps}
     >
-      {fieldType === FieldType.CHECKBOX ? !!value : value ?? ""}
+      {value ?? ""}
     </Text>
   );
 }
