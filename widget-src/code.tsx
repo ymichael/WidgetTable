@@ -29,8 +29,7 @@ class SyncedTable {
   ) {}
 
   private genRowId(): number {
-    const currKey =
-      this.metadata.get(this.ROW_AUTO_INCR_KEY) || fractionalIndex.ZERO;
+    const currKey = this.metadata.get(this.ROW_AUTO_INCR_KEY) || "a0";
     const nextRowId = fractionalIndex(String(currKey), null);
     this.metadata.set(this.ROW_AUTO_INCR_KEY, nextRowId);
     return nextRowId;
