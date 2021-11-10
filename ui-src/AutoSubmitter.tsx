@@ -20,13 +20,11 @@ export default class AutoSubmitter extends React.Component<AutoSubmitterProps> {
   }
 
   componentDidUpdate(prevProps: AutoSubmitterProps) {
-    if (this.props.formik.isValidating) {
-      return;
-    }
-    if (!this.props.formik.isValid) {
+    if (this.props.formik.isValidating || !this.props.formik.isValid) {
       return;
     }
     if (
+      !prevProps.formik.isValidating &&
       prevProps.formik.isValid &&
       isEqual(prevProps.formik.values, this.props.formik.values)
     ) {

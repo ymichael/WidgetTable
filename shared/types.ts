@@ -5,6 +5,7 @@ export enum FieldType {
   SELECT_SINGLE = "SELECT_SINGLE",
   SELECT_MULTIPLE = "SELECT_MULTIPLE",
   URL = "URL",
+  EMAIL = "EMAIL",
 }
 
 export type TableField =
@@ -15,7 +16,8 @@ export type TableField =
         | FieldType.TEXT_SINGLE_LINE
         | FieldType.TEXT_MULTI_LINE
         | FieldType.CHECKBOX
-        | FieldType.URL;
+        | FieldType.URL
+        | FieldType.EMAIL;
     }
   | {
       fieldId: string;

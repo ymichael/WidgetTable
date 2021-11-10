@@ -21,6 +21,11 @@ function generateValidationSchemaFromTableSchema(
       case FieldType.TEXT_MULTI_LINE:
         yupSchema = yupSchema.shape({ [field.fieldId]: yup.string() });
         break;
+      case FieldType.EMAIL:
+        yupSchema = yupSchema.shape({
+          [field.fieldId]: yup.string().email("Please specify a valid email."),
+        });
+        break;
       case FieldType.URL:
         yupSchema = yupSchema.shape({
           [field.fieldId]: yup.string().url("Please specify a valid url."),
@@ -138,6 +143,7 @@ export default function RowEditor({
                 switch (fieldType) {
                   case FieldType.TEXT_SINGLE_LINE:
                   case FieldType.URL:
+                  case FieldType.EMAIL:
                     return (
                       <FieldRow
                         key={fieldKey}
