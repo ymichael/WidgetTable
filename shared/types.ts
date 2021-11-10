@@ -7,6 +7,7 @@ export enum FieldType {
   URL = "URL",
   EMAIL = "EMAIL",
   NUMBER = "NUMBER",
+  VOTE = "VOTE",
 }
 
 export type TableField =
@@ -19,7 +20,8 @@ export type TableField =
         | FieldType.CHECKBOX
         | FieldType.URL
         | FieldType.EMAIL
-        | FieldType.NUMBER;
+        | FieldType.NUMBER
+        | FieldType.VOTE;
     }
   | {
       fieldId: string;

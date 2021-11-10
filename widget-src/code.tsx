@@ -24,8 +24,10 @@ class SyncedTable {
   TABLE_TITLE_KEY = "table-title-key";
 
   constructor(
+    private schema: TableField[],
     private metadata: SyncedMap<any>,
-    private rows: SyncedMap<TRow["rowData"]>
+    private rows: SyncedMap<TRow["rowData"]>,
+    private votes: SyncedMap<boolean>
   ) {}
 
   private genRowId(): number {
@@ -55,10 +57,58 @@ class SyncedTable {
     this.rows.delete(rowId);
   }
 
+  getVotesMap(): { [rowId: string]: { [fieldId: string]: number } } {
+    const votesMap = {};
+    this.votes.keys().forEach((voteKey) => {
+      const { rowId, fieldId, userId } = this.fromVoteKey(voteKey);
+      votesMap[rowId] = votesMap[rowId] || {};
+      votesMap[rowId][fieldId] = votesMap[rowId][fieldId] || 0;
+      votesMap[rowId][fieldId] += 1;
+    });
+    return votesMap;
+  }
+
+  private fromVoteKey(voteKey: string): {
+    rowId: string;
+    fieldId: string;
+    userId: string;
+  } {
+    const [rowId, fieldId, userId] = voteKey.split(":", 3);
+    return { rowId, fieldId, userId };
+  }
+
+  private toVoteKey({
+    rowId,
+    fieldId,
+    userId,
+  }: {
+    rowId: string;
+    fieldId: string;
+    userId: string;
+  }): string {
+    return `${rowId}:${fieldId}:${userId}`;
+  }
+
+  toggleVote(args: { rowId: string; fieldId: string; userId: string }): void {
+    const voteKey = this.toVoteKey(args);
+    if (this.votes.get(voteKey)) {
+      this.votes.delete(voteKey);
+    } else {
+      this.votes.set(voteKey, true);
+    }
+  }
+
   getRows(): [string, TRow["rowData"]][] {
+    const votesMap = this.getVotesMap();
     const rowKeys = this.rows.keys();
     rowKeys.sort();
-    return rowKeys.map((k) => [k, this.rows.get(k)]);
+    return rowKeys.map((k) => {
+      const rowData = {
+        ...this.rows.get(k),
+        ...votesMap[k],
+      };
+      return [k, rowData];
+    });
   }
 }
 
@@ -89,6 +139,7 @@ function widthForFieldType(fieldType: FieldType): number {
     case FieldType.SELECT_SINGLE:
     case FieldType.CHECKBOX:
     case FieldType.NUMBER:
+    case FieldType.VOTE:
       return 60;
     case FieldType.URL:
     case FieldType.EMAIL:
@@ -142,13 +193,22 @@ function RowIdx({ idx }: { idx: number }) {
   );
 }
 
-function Pill({ value }: { key?: string; value: string }) {
+function Pill({
+  value,
+  onClick,
+}: {
+  key?: string;
+  value: any;
+  onClick?: () => void;
+}) {
+  const additionalProps = onClick ? { onClick } : {};
   return (
     <AutoLayout
       cornerRadius={10}
       fill="#EEE"
       width="hug-contents"
       padding={{ horizontal: 10, vertical: 5 }}
+      {...additionalProps}
     >
       <Text fontSize={12} fontFamily="Inter" fontWeight={400} fill="#2A2A2A">
         {value}
@@ -160,10 +220,18 @@ function Pill({ value }: { key?: string; value: string }) {
 function CellValue({
   fieldType,
   value,
+  syncedTable,
+  rowKey,
+  fieldId,
+  onEditRow,
 }: {
   key: any;
-  fieldType: FieldType;
   value: any;
+  syncedTable: SyncedTable;
+  fieldType: FieldType;
+  rowKey: string;
+  fieldId: string;
+  onEditRow: () => void;
 }) {
   if (value) {
     if (fieldType === FieldType.SELECT_SINGLE) {
@@ -184,9 +252,28 @@ function CellValue({
     }
   }
 
+  if (fieldType === FieldType.VOTE) {
+    return (
+      <AutoLayout width={widthForFieldType(fieldType)}>
+        <Pill
+          value={value || 0}
+          onClick={() => {
+            syncedTable.toggleVote({
+              rowId: rowKey,
+              fieldId,
+              userId: figma.currentUser.id,
+            });
+          }}
+        />
+      </AutoLayout>
+    );
+  }
+
   const additionalProps: any = {};
   if (value && fieldType === FieldType.URL) {
     additionalProps["href"] = value;
+  } else {
+    additionalProps["onClick"] = onEditRow;
   }
 
   return (
@@ -240,8 +327,14 @@ function Table() {
     []
   );
   const tableMetadata = useSyncedMap<any>("tableMetadata");
+  const tableVotes = useSyncedMap<boolean>("tableVotes");
   const tableRows = useSyncedMap<TRow["rowData"]>("tableRows");
-  const syncedTable = new SyncedTable(tableMetadata, tableRows);
+  const syncedTable = new SyncedTable(
+    tableSchema,
+    tableMetadata,
+    tableRows,
+    tableVotes
+  );
   useEffect(() => {
     if (tableSchema.length === 0 && tableRows.size === 0) {
       setTableSchema(DEFAULT_SCHEMA);
@@ -392,26 +485,27 @@ function Table() {
         >
           <Frame name="Spacer" width={495} height={1} />
           {syncedTable.getRows().map(([rowKey, row], idx) => {
+            const onEditRow = () => {
+              return showUIWithPayload({
+                type: "EDIT_ROW",
+                fields: tableSchema,
+                row: {
+                  rowId: rowKey,
+                  rowData: row,
+                },
+              });
+            };
             return (
-              <AutoLayout
-                spacing={SPACING_HORIZONTAL}
-                key={rowKey}
-                onClick={() => {
-                  return showUIWithPayload({
-                    type: "EDIT_ROW",
-                    fields: tableSchema,
-                    row: {
-                      rowId: rowKey,
-                      rowData: row,
-                    },
-                  });
-                }}
-              >
+              <AutoLayout spacing={SPACING_HORIZONTAL} key={rowKey}>
                 <RowIdx idx={idx + 1} />
                 {tableSchema.map((field) => {
                   return (
                     <CellValue
+                      onEditRow={onEditRow}
+                      syncedTable={syncedTable}
                       key={field.fieldId}
+                      rowKey={rowKey}
+                      fieldId={field.fieldId}
                       fieldType={field.fieldType}
                       value={row[field.fieldId]}
                     />

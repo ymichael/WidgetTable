@@ -7,6 +7,7 @@ export const FIELD_TYPE_READABLE: Record<FieldType, string> = {
   EMAIL: "Email",
   NUMBER: "Number",
   CHECKBOX: "Checkbox",
+  VOTE: "Vote",
   SELECT_SINGLE: "Single select",
   SELECT_MULTIPLE: "Multi select",
 };
@@ -19,6 +20,7 @@ export const FIELD_TYPE_DESCRIPTION: Record<FieldType, string> = {
   NUMBER:
     "The number field is useful if you intend to store a numerical value.",
   URL: "The URL field can be used if you intend to store a single URL in this field. When displayed, the field will link directly to the specified value.",
+  VOTE: "The vote field is useful to enable to voting on rows. Every user is allowed to vote once.",
   EMAIL:
     "The email field is useful if you intend to store a single email address in this field.",
   CHECKBOX: "The checkbox field type is useful for true / false values.",

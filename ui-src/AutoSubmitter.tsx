@@ -30,7 +30,6 @@ export default class AutoSubmitter extends React.Component<AutoSubmitterProps> {
       ) {
         return;
       }
-      console.log("onAutoSubmit");
       this.props.onAutoSubmit(this.props.formik.values);
     },
     100,

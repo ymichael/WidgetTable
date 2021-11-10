@@ -46,6 +46,11 @@ function generateValidationSchemaFromTableSchema(
           [field.fieldId]: yup.string().oneOf(field.fieldOptions),
         });
         break;
+      case FieldType.VOTE:
+        yupSchema = yupSchema.shape({
+          [field.fieldId]: yup.boolean(),
+        });
+        break;
       case FieldType.SELECT_MULTIPLE:
         yupSchema = yupSchema.shape({
           [field.fieldId]: yup
@@ -177,6 +182,8 @@ export default function RowEditor({
                         fieldType="checkbox"
                       />
                     );
+                  case FieldType.VOTE:
+                    return null;
                   case FieldType.SELECT_MULTIPLE:
                   case FieldType.SELECT_SINGLE:
                     return (
