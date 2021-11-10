@@ -5,7 +5,11 @@ import {
   IFrameToWidgetMessage,
   WidgetToIFrameMessage,
 } from "../shared/types";
-import { DEFAULT_SCHEMA } from "./constants";
+import {
+  DEFAULT_SCHEMA,
+  STICKY_SCHEMA,
+  STICKY_NO_AUTHOR_SCHEMA,
+} from "./constants";
 import { checkedSvg, uncheckedSvg } from "./svgSrc";
 import { assertUnreachable } from "../shared/utils";
 import SyncedTable from "./syncedTable";
@@ -25,6 +29,28 @@ const {
 const SPACING_VERTICAL = 15;
 const SPACING_HORIZONTAL = 20;
 const IFRAME_WIDTH = 500;
+
+function isSticky(node: SceneNode): node is StickyNode {
+  return node.type === "STICKY";
+}
+
+function importStickies(
+  syncedTable: SyncedTable,
+  setTableSchema: (schema: TableField[]) => void,
+  stickies: StickyNode[]
+): void {
+  syncedTable.setTitle("Stickies");
+  let hasVisibleAuthor = false;
+  stickies.forEach((sticky) => {
+    hasVisibleAuthor = hasVisibleAuthor || sticky.authorVisible;
+    syncedTable.appendRow({
+      text: sticky.text.characters,
+      // @ts-expect-error
+      author: sticky.authorVisible ? sticky.authorName : "",
+    });
+  });
+  setTableSchema(hasVisibleAuthor ? STICKY_SCHEMA : STICKY_NO_AUTHOR_SCHEMA);
+}
 
 function widthForFieldType(fieldType: FieldType): number {
   switch (fieldType) {
@@ -106,7 +132,7 @@ function RowIdx({ idx }: { idx: number }) {
       fontSize={12}
       fontFamily="Inter"
       fontWeight={400}
-      width={15}
+      width={20}
       horizontalAlignText="right"
       fill="#2A2A2A"
       opacity={0.5}
@@ -291,11 +317,7 @@ function TableFrame({
       >
         {headerChildren}
       </AutoLayout>
-      <AutoLayout
-        direction="vertical"
-        spacing={8}
-        padding={{ horizontal: 15, bottom: 20 }}
-      >
+      <AutoLayout direction="vertical" padding={{ horizontal: 15, bottom: 20 }}>
         {children}
       </AutoLayout>
     </AutoLayout>
@@ -403,42 +425,45 @@ function Table() {
           </Text>
         }
       >
-        <ButtonRow
-          width={400}
-          onClick={() => {
-            setTableSchema(DEFAULT_SCHEMA);
-            return showUIWithPayload({
-              type: "EDIT_SCHEMA",
-              fields: DEFAULT_SCHEMA,
-            });
-          }}
-        >
-          Create Table
-        </ButtonRow>
-        <ButtonRow
-          width={400}
-          onClick={() => {
-            console.log("TODO");
-          }}
-        >
-          {"Stickies -> Table"}
-        </ButtonRow>
-        <ButtonRow
-          width={400}
-          onClick={() => {
-            console.log("TODO");
-          }}
-        >
-          {"Selection -> Table"}
-        </ButtonRow>
-        <ButtonRow
-          width={400}
-          onClick={() => {
-            console.log("TODO");
-          }}
-        >
-          {"CSV -> Table"}
-        </ButtonRow>
+        <AutoLayout direction="vertical" spacing={10}>
+          <ButtonRow
+            width={400}
+            onClick={() => {
+              setTableSchema(DEFAULT_SCHEMA);
+              return showUIWithPayload({
+                type: "EDIT_SCHEMA",
+                fields: DEFAULT_SCHEMA,
+              });
+            }}
+          >
+            Create Table
+          </ButtonRow>
+          <ButtonRow
+            width={400}
+            onClick={() => {
+              const stickies = figma.currentPage.findChildren(
+                isSticky
+              ) as StickyNode[];
+              importStickies(syncedTable, setTableSchema, stickies);
+            }}
+          >
+            {"All Stickies -> Table"}
+          </ButtonRow>
+          <ButtonRow
+            width={400}
+            onClick={() => {
+              const stickies: StickyNode[] =
+                figma.currentPage.selection.filter(isSticky);
+              if (stickies.length === 0) {
+                figma.notify("Select Stickies to populate table");
+                return;
+              }
+              importStickies(syncedTable, setTableSchema, stickies);
+            }}
+          >
+            {"Selected Stickies -> Table"}
+          </ButtonRow>
+        </AutoLayout>
       </TableFrame>
     );
   }
@@ -478,9 +503,9 @@ function Table() {
       <AutoLayout
         direction="vertical"
         spacing={SPACING_VERTICAL}
-        padding={{ bottom: 10 }}
+        padding={{ bottom: 20 }}
       >
-        <Frame name="Spacer" width={495} height={1} />
+        <Frame name="Spacer" width={200} height={1} />
         {syncedTable.getRows().map(([rowKey, row], idx) => {
           const onEditRow = () => {
             return showUIWithPayload({
