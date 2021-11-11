@@ -5,8 +5,22 @@ import { genId } from "../shared/utils";
 import cx from "classnames";
 import styles from "./FieldRow.module.css";
 
-export function FieldRowSplit({ children }: { children: any }) {
-  return <div className={styles.FieldRowSplit}>{children}</div>;
+export function FieldRowSplit({
+  children,
+  leftWidthPct = 0.3,
+}: {
+  children: any;
+  leftWidthPct?: number;
+}) {
+  const [l, r] = React.Children.toArray(children);
+  return (
+    <div className={styles.FieldRowSplit}>
+      <div style={{ padding: "5px", width: `${leftWidthPct * 100}%` }}>{l}</div>
+      <div style={{ padding: "5px", width: `${(1 - leftWidthPct) * 100}%` }}>
+        {r}
+      </div>
+    </div>
+  );
 }
 
 export function FieldRow({

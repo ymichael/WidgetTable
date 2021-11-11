@@ -24,6 +24,8 @@ const fieldSchema = yup.object().shape({
       .min(1, "Please specify at least one option for this field"),
     otherwise: yup.array(),
   }),
+  fieldSuffix: yup.string(),
+  fieldPrefix: yup.string(),
 });
 
 const fieldsSchema = yup.object().shape({
@@ -270,6 +272,18 @@ function SchemaFieldForm({
             }}
           />
         </FieldRow>
+      )}
+      {values.fieldType === FieldType.NUMBER && (
+        <FieldRowSplit leftWidthPct={0.5}>
+          <FieldRow
+            fieldName={`${fieldPrefix}.fieldPrefix`}
+            fieldLabel="Field Prefix"
+          />
+          <FieldRow
+            fieldName={`${fieldPrefix}.fieldSuffix`}
+            fieldLabel="Field Suffix"
+          />
+        </FieldRowSplit>
       )}
     </div>
   );

@@ -20,8 +20,14 @@ export type TableField =
         | FieldType.CHECKBOX
         | FieldType.URL
         | FieldType.EMAIL
-        | FieldType.NUMBER
         | FieldType.VOTE;
+    }
+  | {
+      fieldId: string;
+      fieldName: string;
+      fieldType: FieldType.NUMBER;
+      fieldPrefix: string;
+      fieldSuffix: string;
     }
   | {
       fieldId: string;

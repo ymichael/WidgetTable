@@ -172,21 +172,20 @@ function Pill({
 }
 
 function CellValue({
-  fieldType,
   value,
+  field,
   syncedTable,
   rowKey,
-  fieldId,
   onEditRow,
 }: {
   key: any;
   value: any;
   syncedTable: SyncedTable;
-  fieldType: FieldType;
   rowKey: string;
-  fieldId: string;
+  field: TableField;
   onEditRow: () => void;
 }) {
+  const { fieldId, fieldType } = field;
   if (value) {
     if (fieldType === FieldType.SELECT_SINGLE) {
       return (
@@ -250,6 +249,7 @@ function CellValue({
     additionalProps["onClick"] = onEditRow;
   }
 
+  const suffixOrPrefix = value && fieldType === FieldType.NUMBER;
   return (
     <Text
       fontSize={12}
@@ -259,7 +259,9 @@ function CellValue({
       fill="#2A2A2A"
       {...additionalProps}
     >
+      {suffixOrPrefix && field.fieldPrefix ? field.fieldPrefix : ""}
       {value ?? ""}
+      {suffixOrPrefix && field.fieldSuffix ? field.fieldSuffix : ""}
     </Text>
   );
 }
@@ -535,8 +537,7 @@ function Table() {
                     syncedTable={syncedTable}
                     key={field.fieldId}
                     rowKey={rowKey}
-                    fieldId={field.fieldId}
-                    fieldType={field.fieldType}
+                    field={field}
                     value={row[field.fieldId]}
                   />
                 );
