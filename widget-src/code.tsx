@@ -10,7 +10,13 @@ import {
   STICKY_SCHEMA,
   STICKY_NO_AUTHOR_SCHEMA,
 } from "./constants";
-import { checkedSvg, uncheckedSvg } from "./svgSrc";
+import {
+  checkedSvg,
+  uncheckedSvg,
+  plusSvg,
+  databaseSvg,
+  trashCanSvg,
+} from "./svgSrc";
 import { assertUnreachable } from "../shared/utils";
 import SyncedTable from "./syncedTable";
 
@@ -38,8 +44,10 @@ function importStickies(
   syncedTable: SyncedTable,
   stickies: StickyNode[]
 ): void {
-  const hasVisibleAuthor = stickies.some(x => x.authorVisible);
-  syncedTable.setSchema(hasVisibleAuthor ? STICKY_SCHEMA : STICKY_NO_AUTHOR_SCHEMA);
+  const hasVisibleAuthor = stickies.some((x) => x.authorVisible);
+  syncedTable.setSchema(
+    hasVisibleAuthor ? STICKY_SCHEMA : STICKY_NO_AUTHOR_SCHEMA
+  );
   syncedTable.setTitle("Stickies");
   stickies.forEach((sticky) => {
     syncedTable.appendRow({
@@ -322,27 +330,11 @@ function TableFrame({
 }
 
 function Table() {
-  const [tableSchemaDeprecated, setTableSchemaDeprecated] = useSyncedState<TableField[]>(
-    "tableSchema",
-    []
-  );
   const tableMetadata = useSyncedMap<any>("tableMetadata");
   const tableVotes = useSyncedMap<boolean>("tableVotes");
   const tableRows = useSyncedMap<TRow["rowData"]>("tableRows");
-  const syncedTable = new SyncedTable(
-    tableMetadata,
-    tableRows,
-    tableVotes
-  );
+  const syncedTable = new SyncedTable(tableMetadata, tableRows, tableVotes);
   const tableSchema = syncedTable.schema;
-
-  // temp
-  useEffect(() => {
-    if (tableSchemaDeprecated.length > 0 && syncedTable.schema.length === 0) {
-      syncedTable.setSchema(tableSchemaDeprecated)
-      setTableSchemaDeprecated([])
-    }
-  })
 
   const showInitialState = tableSchema.length === 0;
   useEffect(() => {
@@ -397,13 +389,21 @@ function Table() {
       : [
           {
             itemType: "action",
-            tooltip: "Add Row",
+            tooltip: "New Row",
             propertyName: "newRow",
+            icon: plusSvg,
           },
           {
             itemType: "action",
-            tooltip: "Edit Table Schema",
+            tooltip: "Edit Schema",
             propertyName: "editSchema",
+            icon: databaseSvg,
+          },
+          {
+            itemType: "action",
+            tooltip: "Delete All",
+            propertyName: "deleteAllRows",
+            icon: trashCanSvg,
           },
         ],
     ({ propertyName }) => {
@@ -417,6 +417,8 @@ function Table() {
           type: "NEW_ROW",
           fields: tableSchema,
         });
+      } else if (propertyName === "deleteAllRows") {
+        syncedTable.deleteAllRows();
       }
     }
   );

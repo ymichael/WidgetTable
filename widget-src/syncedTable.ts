@@ -33,11 +33,11 @@ export default class SyncedTable {
   }
 
   get schema(): TableField[] {
-    return this.metadata.get(this.TABLE_SCHEMA_KEY) || []
+    return this.metadata.get(this.TABLE_SCHEMA_KEY) || [];
   }
 
   setSchema(schema: TableField[]): void {
-    this.metadata.set(this.TABLE_SCHEMA_KEY, schema)
+    this.metadata.set(this.TABLE_SCHEMA_KEY, schema);
     this.updateNonVoteFieldIds();
   }
 
@@ -47,6 +47,10 @@ export default class SyncedTable {
 
   setTitle(name: string): void {
     this.metadata.set(this.TABLE_TITLE_KEY, name);
+  }
+
+  deleteAllRows(): void {
+    this.rows.keys().forEach((k) => this.rows.delete(k));
   }
 
   sanitizeRow(rowData: TRow["rowData"]): TRow["rowData"] {
