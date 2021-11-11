@@ -229,6 +229,7 @@ function CellValue({
         <SVG
           width={20}
           height={20}
+          fill="#FFF"
           src={!!value ? checkedSvg : uncheckedSvg}
           onClick={() => {
             syncedTable.setRowFieldValue({
