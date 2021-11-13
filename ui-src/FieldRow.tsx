@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { Field, ErrorMessage, useField } from "formik";
+import { Field, ErrorMessage } from "formik";
 import { genId } from "../shared/utils";
 import cx from "classnames";
 import styles from "./FieldRow.module.css";
@@ -27,7 +27,6 @@ export function FieldRow({
   fieldName,
   fieldLabel,
   children,
-  compact = false,
   fieldAs = "input",
   fieldType = "text",
 }: {
@@ -35,28 +34,17 @@ export function FieldRow({
   fieldLabel: string;
   fieldAs?: string;
   fieldType?: string;
-  compact?: boolean;
   children?: any;
 }) {
-  const [, meta] = useField(fieldName);
   const [id] = useState(genId);
-  const fieldStyle: any = {};
-  if (compact && fieldAs === "textarea") {
-    fieldAs = "input";
-  }
-  if (compact && meta.error) {
-    fieldStyle.outline = "2px solid #bf0f10";
-  }
-
   return (
     <div
       className={cx(
         styles.FieldRow,
-        fieldType === "checkbox" && styles.FieldRowCheckbox,
-        compact && styles.FieldRowCompact
+        fieldType === "checkbox" && styles.FieldRowCheckbox
       )}
     >
-      {!compact && <label htmlFor={id}>{fieldLabel}</label>}
+      <label htmlFor={id}>{fieldLabel}</label>
       {children ? (
         children
       ) : (
@@ -66,14 +54,11 @@ export function FieldRow({
           type={fieldType}
           as={fieldAs}
           autoComplete="off"
-          style={fieldStyle}
         />
       )}
-      {!compact && (
-        <div className={styles.FieldError}>
-          <ErrorMessage name={fieldName} />
-        </div>
-      )}
+      <div className={styles.FieldError}>
+        <ErrorMessage name={fieldName} />
+      </div>
     </div>
   );
 }

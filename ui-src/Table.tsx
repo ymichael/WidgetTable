@@ -1,22 +1,20 @@
 import * as React from "react";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { Formik, Form } from "formik";
+import { Formik, Form, Field } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { TableField, TRow } from "../shared/types";
+import { TableField, FieldType, TRow } from "../shared/types";
 import AutoSubmitter from "./AutoSubmitter";
 import Gear from "./icons/Gear";
-import {
-  RowFieldEditor,
-  generateValidationSchemaFromTableSchema,
-} from "./RowEditor";
-import { widthForFieldType } from "../shared/utils";
+import { generateValidationSchemaFromTableSchema } from "./RowEditor";
+import { widthForFieldType, assertUnreachable } from "../shared/utils";
+import CustomSelect from "./input/CustomSelect";
 import styles from "./Table.module.css";
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
   return {
     userSelect: "none",
     backgroundColor: "#FFF",
-    marginBottom: "10px",
+    borderBottom: isDragging ? "solid 1px #eee" : "none",
     ...draggableStyle,
   };
 };
@@ -141,7 +139,12 @@ export default function Table({
 
 function CellBox({ field, children }: { field: TableField; children: any }) {
   return (
-    <div style={{ width: widthForFieldType(field.fieldType), margin: "0 5px" }}>
+    <div
+      className={styles.CellBox}
+      style={{
+        width: widthForFieldType(field.fieldType, true),
+      }}
+    >
       {children}
     </div>
   );
@@ -239,7 +242,38 @@ const TableRowFormMemo = React.memo(TableRowForm);
 function TableCell({ field, value }: { field: TableField; value: any }) {
   return (
     <CellBox field={field}>
-      <RowFieldEditor compact={true} field={field} />
+      <CellEditor field={field} />
     </CellBox>
   );
+}
+
+function CellEditor({ field }: { field: TableField }) {
+  const fieldName = field.fieldId;
+  const fieldType = field.fieldType;
+  switch (fieldType) {
+    case FieldType.TEXT_SINGLE_LINE:
+    case FieldType.URL:
+    case FieldType.EMAIL:
+    case FieldType.NUMBER:
+    case FieldType.TEXT_MULTI_LINE:
+      return <Field name={fieldName} type="text" autoComplete="off" />;
+    case FieldType.CHECKBOX:
+      return <Field name={fieldName} type="checkbox" autoComplete="off" />;
+    case FieldType.VOTE:
+      return null;
+    case FieldType.SELECT_MULTIPLE:
+    case FieldType.SELECT_SINGLE:
+      return (
+        <Field
+          name={fieldName}
+          component={CustomSelect}
+          options={field.fieldOptions.map((opt) => {
+            return { value: opt, label: opt };
+          })}
+          isMulti={fieldType === FieldType.SELECT_MULTIPLE}
+        />
+      );
+    default:
+      assertUnreachable(fieldType);
+  }
 }
