@@ -469,7 +469,7 @@ function Table() {
               importStickies(syncedTable, stickies);
             }}
           >
-            {"All Stickies -> Table"}
+            {"Import all stickies"}
           </ButtonRow>
           <ButtonRow
             width={400}
@@ -483,7 +483,7 @@ function Table() {
               importStickies(syncedTable, stickies);
             }}
           >
-            {"Selected Stickies -> Table"}
+            {"Import selected stickies"}
           </ButtonRow>
         </AutoLayout>
       </TableFrame>
