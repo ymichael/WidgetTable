@@ -55,6 +55,13 @@ export const TEST_TABLE_SCHEMA: Table["fields"] = [
     fieldSuffix: "",
   },
   {
+    fieldId: "email",
+    fieldName: "Email",
+    fieldType: FieldType.EMAIL,
+    fieldPrefix: "",
+    fieldSuffix: "",
+  },
+  {
     fieldId: "published",
     fieldName: "Published",
     fieldType: FieldType.CHECKBOX,

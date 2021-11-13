@@ -56,12 +56,6 @@
   border-top: solid 1px #eee;
 }
 
-.TableRow input {
-  padding: 0 !important;
-  outline: none !important;
-  border: none !important;
-}
-
 .RowIdx {
   user-select: none;
   padding-left: 10px;
@@ -73,6 +67,17 @@
 }
 
 .CellBox {
+  display: flex;
+  flex-direction: column;
   padding: 8px;
   border-left: solid 1px #eee;
+}
+
+.CellBoxError {
+  border-bottom: solid 2px #bf0f10;
+}
+
+.ErrorMsg {
+  font-size: 10px;
+  color: #bf0f10;
 }

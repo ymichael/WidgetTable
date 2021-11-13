@@ -1,6 +1,7 @@
 import * as React from "react";
+import cx from "classnames";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, useField } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { TableField, FieldType, TRow } from "../shared/types";
 import AutoSubmitter from "./AutoSubmitter";
@@ -50,7 +51,7 @@ export default function Table({
     return ret;
   }, [rows]);
   const validationSchema = useMemo(() => {
-    generateValidationSchemaFromTableSchema(tableSchema);
+    return generateValidationSchemaFromTableSchema(tableSchema);
   }, tableSchema);
   const onRowEditInner = useCallback((row, v) => {
     onRowEdit(row.rowId, v);
@@ -137,10 +138,18 @@ export default function Table({
   );
 }
 
-function CellBox({ field, children }: { field: TableField; children: any }) {
+function CellBox({
+  field,
+  children,
+  isError = false,
+}: {
+  field: TableField;
+  isError?: boolean;
+  children: any;
+}) {
   return (
     <div
-      className={styles.CellBox}
+      className={cx(styles.CellBox, isError && styles.CellBoxError)}
       style={{
         width: widthForFieldType(field.fieldType, true),
       }}
@@ -240,9 +249,12 @@ function TableRowForm({
 const TableRowFormMemo = React.memo(TableRowForm);
 
 function TableCell({ field, value }: { field: TableField; value: any }) {
+  const fieldName = field.fieldId;
+  const [, meta] = useField(fieldName);
   return (
-    <CellBox field={field}>
+    <CellBox field={field} isError={!!meta.error}>
       <CellEditor field={field} />
+      {meta.error && <div className={styles.ErrorMsg}>{meta.error}</div>}
     </CellBox>
   );
 }
@@ -256,7 +268,20 @@ function CellEditor({ field }: { field: TableField }) {
     case FieldType.EMAIL:
     case FieldType.NUMBER:
     case FieldType.TEXT_MULTI_LINE:
-      return <Field name={fieldName} type="text" autoComplete="off" />;
+      return (
+        <Field
+          name={fieldName}
+          as="textarea"
+          autoComplete="off"
+          style={{
+            resize: "none",
+            width: "100%",
+            height: "100%",
+            border: "none",
+            outline: "none",
+          }}
+        />
+      );
     case FieldType.CHECKBOX:
       return <Field name={fieldName} type="checkbox" autoComplete="off" />;
     case FieldType.VOTE:
