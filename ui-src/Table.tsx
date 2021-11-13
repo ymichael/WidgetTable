@@ -73,7 +73,6 @@ export default function Table({
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            {...provided.dragHandleProps}
                             style={getItemStyle(
                               snapshot.isDragging,
                               provided.draggableProps.style
@@ -83,6 +82,7 @@ export default function Table({
                               rowIdx={idx + 1}
                               tableSchema={tableSchema}
                               row={rowById[rowId]}
+                              dragHandleProps={provided.dragHandleProps}
                             />
                           </div>
                         )}
@@ -120,10 +120,12 @@ function TableRow({
   tableSchema,
   row,
   rowIdx,
+  dragHandleProps,
 }: {
   tableSchema: TableField[];
   row: TRow;
   rowIdx: number;
+  dragHandleProps: any;
 }) {
   return (
     <Formik
@@ -138,7 +140,9 @@ function TableRow({
         return (
           <Form onSubmit={formik.handleSubmit}>
             <div className={styles.TableRow}>
-              <RowIdx idx={rowIdx} />
+              <div {...dragHandleProps}>
+                <RowIdx idx={rowIdx} />
+              </div>
               {tableSchema.map((field) => {
                 return (
                   <TableCell
