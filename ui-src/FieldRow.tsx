@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import { Field, ErrorMessage } from "formik";
+import { Field, ErrorMessage, useField } from "formik";
 import { genId } from "../shared/utils";
 import cx from "classnames";
 import styles from "./FieldRow.module.css";
@@ -27,17 +27,18 @@ export function FieldRow({
   fieldName,
   fieldLabel,
   children,
-  showLabel = true,
+  compact = false,
   fieldAs = "input",
   fieldType = "text",
 }: {
   fieldName: string;
-  showLabel?: boolean;
   fieldLabel: string;
   fieldAs?: string;
   fieldType?: string;
+  compact?: boolean;
   children?: any;
 }) {
+  const [, meta] = useField(fieldName);
   const [id] = useState(genId);
   return (
     <div
@@ -46,7 +47,7 @@ export function FieldRow({
         fieldType === "checkbox" && styles.FieldRowCheckbox
       )}
     >
-      {showLabel && <label htmlFor={id}>{fieldLabel}</label>}
+      {!compact && <label htmlFor={id}>{fieldLabel}</label>}
       {children ? (
         children
       ) : (
@@ -56,11 +57,14 @@ export function FieldRow({
           type={fieldType}
           as={fieldAs}
           autoComplete="off"
+          style={compact && meta.error ? { outline: "2px solid #bf0f10" } : {}}
         />
       )}
-      <div className={styles.FieldError}>
-        <ErrorMessage name={fieldName} />
-      </div>
+      {!compact && (
+        <div className={styles.FieldError}>
+          <ErrorMessage name={fieldName} />
+        </div>
+      )}
     </div>
   );
 }

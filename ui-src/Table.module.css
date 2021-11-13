@@ -1,6 +1,7 @@
 .Table {
   padding: 10px;
   border-top: solid 10px #a83ffb;
+  overflow: scroll;
 }
 
 .TableRow,
@@ -9,6 +10,11 @@
   flex-direction: row;
   padding: 0 15px;
   align-items: center;
+}
+
+.TableRow > *,
+.TableHeader > * {
+  flex-shrink: 0;
 }
 
 .TableHeader {

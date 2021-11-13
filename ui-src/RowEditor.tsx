@@ -176,7 +176,7 @@ export function RowFieldEditor({
       return (
         <FieldRow
           key={fieldKey}
-          showLabel={!compact}
+          compact={compact}
           fieldName={field.fieldId}
           fieldLabel={field.fieldName}
         />
@@ -185,7 +185,7 @@ export function RowFieldEditor({
       return (
         <FieldRow
           key={fieldKey}
-          showLabel={!compact}
+          compact={compact}
           fieldName={field.fieldId}
           fieldLabel={field.fieldName}
           fieldAs={compact ? "input" : "textarea"}
@@ -195,7 +195,7 @@ export function RowFieldEditor({
       return (
         <FieldRow
           key={fieldKey}
-          showLabel={!compact}
+          compact={compact}
           fieldName={field.fieldId}
           fieldLabel={field.fieldName}
           fieldType="checkbox"
@@ -208,20 +208,20 @@ export function RowFieldEditor({
       return (
         <FieldRow
           key={fieldKey}
-          showLabel={!compact}
+          compact={compact}
           fieldName={field.fieldId}
           fieldLabel={field.fieldName}
         >
           <Field
             name={field.fieldId}
-            showLabel={!compact}
+            compact={compact}
             component={CustomSelect}
             options={field.fieldOptions.map((opt) => {
               return { value: opt, label: opt };
             })}
             isMulti={fieldType === FieldType.SELECT_MULTIPLE}
           />
-          <ErrorMessage name={field.fieldId} />
+          {!compact && <ErrorMessage name={field.fieldId} />}
         </FieldRow>
       );
     default:
