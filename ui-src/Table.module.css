@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: row;
   padding: 0 15px;
+  align-items: center;
 }
 
 .TableHeader {

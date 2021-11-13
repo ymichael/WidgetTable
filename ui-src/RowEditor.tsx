@@ -11,7 +11,7 @@ import AutoSubmitter from "./AutoSubmitter";
 
 import styles from "./RowEditor.module.css";
 
-function generateValidationSchemaFromTableSchema(
+export function generateValidationSchemaFromTableSchema(
   tableSchema: TableField[]
 ): yup.BaseSchema {
   let yupSchema = yup.object();
@@ -148,64 +148,7 @@ export default function RowEditor({
                 </ButtonRow>
               </div>
               {tableSchema.map((field) => {
-                // TODO (sanitize?)
-                const fieldKey = field.fieldName;
-                const fieldType = field.fieldType;
-
-                switch (fieldType) {
-                  case FieldType.TEXT_SINGLE_LINE:
-                  case FieldType.URL:
-                  case FieldType.EMAIL:
-                  case FieldType.NUMBER:
-                    return (
-                      <FieldRow
-                        key={fieldKey}
-                        fieldName={field.fieldId}
-                        fieldLabel={field.fieldName}
-                      />
-                    );
-                  case FieldType.TEXT_MULTI_LINE:
-                    return (
-                      <FieldRow
-                        key={fieldKey}
-                        fieldName={field.fieldId}
-                        fieldLabel={field.fieldName}
-                        fieldAs="textarea"
-                      />
-                    );
-                  case FieldType.CHECKBOX:
-                    return (
-                      <FieldRow
-                        key={fieldKey}
-                        fieldName={field.fieldId}
-                        fieldLabel={field.fieldName}
-                        fieldType="checkbox"
-                      />
-                    );
-                  case FieldType.VOTE:
-                    return null;
-                  case FieldType.SELECT_MULTIPLE:
-                  case FieldType.SELECT_SINGLE:
-                    return (
-                      <FieldRow
-                        key={fieldKey}
-                        fieldName={field.fieldId}
-                        fieldLabel={field.fieldName}
-                      >
-                        <Field
-                          name={field.fieldId}
-                          component={CustomSelect}
-                          options={field.fieldOptions.map((opt) => {
-                            return { value: opt, label: opt };
-                          })}
-                          isMulti={fieldType === FieldType.SELECT_MULTIPLE}
-                        />
-                        <ErrorMessage name={field.fieldId} />
-                      </FieldRow>
-                    );
-                  default:
-                    assertUnreachable(fieldType);
-                }
+                return <RowFieldEditor key={field.fieldId} field={field} />;
               })}
             </Form>
           );
@@ -213,4 +156,75 @@ export default function RowEditor({
       </Formik>
     </div>
   );
+}
+
+export function RowFieldEditor({
+  field,
+  compact = false,
+}: {
+  field: TableField;
+  compact?: boolean;
+}) {
+  const fieldKey = field.fieldId;
+  const fieldType = field.fieldType;
+
+  switch (fieldType) {
+    case FieldType.TEXT_SINGLE_LINE:
+    case FieldType.URL:
+    case FieldType.EMAIL:
+    case FieldType.NUMBER:
+      return (
+        <FieldRow
+          key={fieldKey}
+          showLabel={!compact}
+          fieldName={field.fieldId}
+          fieldLabel={field.fieldName}
+        />
+      );
+    case FieldType.TEXT_MULTI_LINE:
+      return (
+        <FieldRow
+          key={fieldKey}
+          showLabel={!compact}
+          fieldName={field.fieldId}
+          fieldLabel={field.fieldName}
+          fieldAs={compact ? "input" : "textarea"}
+        />
+      );
+    case FieldType.CHECKBOX:
+      return (
+        <FieldRow
+          key={fieldKey}
+          showLabel={!compact}
+          fieldName={field.fieldId}
+          fieldLabel={field.fieldName}
+          fieldType="checkbox"
+        />
+      );
+    case FieldType.VOTE:
+      return null;
+    case FieldType.SELECT_MULTIPLE:
+    case FieldType.SELECT_SINGLE:
+      return (
+        <FieldRow
+          key={fieldKey}
+          showLabel={!compact}
+          fieldName={field.fieldId}
+          fieldLabel={field.fieldName}
+        >
+          <Field
+            name={field.fieldId}
+            showLabel={!compact}
+            component={CustomSelect}
+            options={field.fieldOptions.map((opt) => {
+              return { value: opt, label: opt };
+            })}
+            isMulti={fieldType === FieldType.SELECT_MULTIPLE}
+          />
+          <ErrorMessage name={field.fieldId} />
+        </FieldRow>
+      );
+    default:
+      assertUnreachable(fieldType);
+  }
 }

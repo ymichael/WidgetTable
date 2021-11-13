@@ -1,5 +1,11 @@
 import * as React from "react";
+import { Formik, Form } from "formik";
+
 import { TableField, TRow } from "../shared/types";
+import {
+  RowFieldEditor,
+  generateValidationSchemaFromTableSchema,
+} from "./RowEditor";
 import { widthForFieldType } from "../shared/utils";
 import styles from "./Table.module.css";
 
@@ -36,12 +42,16 @@ export default function Table({
   );
 }
 
-function ColumnHeader({ field }: { field: TableField }) {
+function CellBox({ field, children }: { field: TableField; children: any }) {
   return (
-    <div style={{ width: widthForFieldType(field.fieldType) }}>
-      {field.fieldName}
+    <div style={{ width: widthForFieldType(field.fieldType), margin: "0 5px" }}>
+      {children}
     </div>
   );
+}
+
+function ColumnHeader({ field }: { field: TableField }) {
+  return <CellBox field={field}>{field.fieldName}</CellBox>;
 }
 
 function RowIdx({ idx }: { idx?: number }) {
@@ -58,25 +68,40 @@ function TableRow({
   rowIdx: number;
 }) {
   return (
-    <div className={styles.TableRow}>
-      <RowIdx idx={rowIdx} />
-      {tableSchema.map((field) => {
+    <Formik
+      initialValues={row.rowData}
+      validationSchema={generateValidationSchemaFromTableSchema(tableSchema)}
+      onSubmit={(values, { setSubmitting }) => {
+        console.log({ values });
+        setSubmitting(false);
+      }}
+    >
+      {(formik) => {
         return (
-          <TableCell
-            key={field.fieldId}
-            field={field}
-            value={row.rowData[field.fieldId]}
-          />
+          <Form onSubmit={formik.handleSubmit}>
+            <div className={styles.TableRow}>
+              <RowIdx idx={rowIdx} />
+              {tableSchema.map((field) => {
+                return (
+                  <TableCell
+                    key={field.fieldId}
+                    field={field}
+                    value={row.rowData[field.fieldId]}
+                  />
+                );
+              })}
+            </div>
+          </Form>
         );
-      })}
-    </div>
+      }}
+    </Formik>
   );
 }
 
 function TableCell({ field, value }: { field: TableField; value: any }) {
   return (
-    <div style={{ width: widthForFieldType(field.fieldType) }}>
-      {value ?? ""}
-    </div>
+    <CellBox field={field}>
+      <RowFieldEditor compact={true} field={field} />
+    </CellBox>
   );
 }

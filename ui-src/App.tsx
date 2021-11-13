@@ -86,6 +86,13 @@ function getAppRoute(): AppRoute {
         tableSchema: TEST_TABLE_SCHEMA,
       };
     }
+    if (/editor=1/.test(window.location.search)) {
+      return {
+        type: RouteType.ROW_EDITOR,
+        tableSchema: TEST_TABLE_SCHEMA,
+        isEdit: false,
+      };
+    }
     if (/title=1/.test(window.location.search)) {
       return {
         type: RouteType.TITLE_EDITOR,

@@ -27,10 +27,12 @@ export function FieldRow({
   fieldName,
   fieldLabel,
   children,
+  showLabel = true,
   fieldAs = "input",
   fieldType = "text",
 }: {
   fieldName: string;
+  showLabel?: boolean;
   fieldLabel: string;
   fieldAs?: string;
   fieldType?: string;
@@ -44,7 +46,7 @@ export function FieldRow({
         fieldType === "checkbox" && styles.FieldRowCheckbox
       )}
     >
-      <label htmlFor={id}>{fieldLabel}</label>
+      {showLabel && <label htmlFor={id}>{fieldLabel}</label>}
       {children ? (
         children
       ) : (
