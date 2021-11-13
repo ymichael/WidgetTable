@@ -55,6 +55,13 @@ const widgetPayload: WidgetToIFrameMessage | undefined = (window as any)
 function getAppRoute(): AppRoute {
   if (widgetPayload) {
     switch (widgetPayload.type) {
+      case "FULL_TABLE":
+        return {
+          type: RouteType.FULL_TABLE,
+          tableSchema: widgetPayload.fields,
+          title: widgetPayload.name,
+          rows: widgetPayload.rows,
+        };
       case "EDIT_SCHEMA":
         return {
           type: RouteType.SCHEMA_EDITOR,

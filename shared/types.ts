@@ -51,6 +51,11 @@ export type WidgetToIFrameMessage = { fields: TableField[] } & (
       type: "EDIT_SCHEMA";
     }
   | {
+      type: "FULL_TABLE";
+      name: string;
+      rows: TRow[];
+    }
+  | {
       type: "NEW_ROW";
     }
   | {

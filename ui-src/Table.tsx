@@ -14,10 +14,29 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
   return {
     userSelect: "none",
     backgroundColor: "#FFF",
-    marginBottom: "15px",
+    marginBottom: "10px",
     ...draggableStyle,
   };
 };
+
+function SettingsSvg() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#2A2A2A"
+      stroke-width="1"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  );
+}
 
 export default function Table({
   title,
@@ -42,6 +61,13 @@ export default function Table({
   return (
     <div className={styles.Table}>
       <div className={styles.TableHeader}>
+        <div style={{ margin: "0 10px" }}></div>
+        {title}
+        <div style={{ margin: "0 10px" }}>
+          <SettingsSvg />
+        </div>
+      </div>
+      <div className={styles.TableColumnHeader}>
         <RowIdx />
         {tableSchema.map((field) => {
           return <ColumnHeader key={field.fieldId} field={field} />;
@@ -50,6 +76,7 @@ export default function Table({
       <div>
         <DragDropContext
           onDragEnd={(result) => {
+            console.log({ result });
             if (!result.destination) {
               return;
             }
@@ -128,35 +155,37 @@ function TableRow({
   dragHandleProps: any;
 }) {
   return (
-    <Formik
-      initialValues={row.rowData}
-      validationSchema={generateValidationSchemaFromTableSchema(tableSchema)}
-      onSubmit={(values, { setSubmitting }) => {
-        console.log({ values });
-        setSubmitting(false);
-      }}
-    >
-      {(formik) => {
-        return (
-          <Form onSubmit={formik.handleSubmit}>
-            <div className={styles.TableRow}>
-              <div {...dragHandleProps}>
-                <RowIdx idx={rowIdx} />
+    <div className={styles.TableRow}>
+      <div {...dragHandleProps} style={{ padding: "10px 0" }}>
+        <RowIdx idx={rowIdx} />
+      </div>
+      <Formik
+        initialValues={row.rowData}
+        validationSchema={generateValidationSchemaFromTableSchema(tableSchema)}
+        onSubmit={(values, { setSubmitting }) => {
+          console.log({ values });
+          setSubmitting(false);
+        }}
+      >
+        {(formik) => {
+          return (
+            <Form onSubmit={formik.handleSubmit}>
+              <div className={styles.TableRowInner}>
+                {tableSchema.map((field) => {
+                  return (
+                    <TableCell
+                      key={field.fieldId}
+                      field={field}
+                      value={row.rowData[field.fieldId]}
+                    />
+                  );
+                })}
               </div>
-              {tableSchema.map((field) => {
-                return (
-                  <TableCell
-                    key={field.fieldId}
-                    field={field}
-                    value={row.rowData[field.fieldId]}
-                  />
-                );
-              })}
-            </div>
-          </Form>
-        );
-      }}
-    </Formik>
+            </Form>
+          );
+        }}
+      </Formik>
+    </div>
   );
 }
 

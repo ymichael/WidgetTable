@@ -40,11 +40,20 @@ export function FieldRow({
 }) {
   const [, meta] = useField(fieldName);
   const [id] = useState(genId);
+  const fieldStyle: any = {};
+  if (compact && fieldAs === "textarea") {
+    fieldAs = "input";
+  }
+  if (compact && meta.error) {
+    fieldStyle.outline = "2px solid #bf0f10";
+  }
+
   return (
     <div
       className={cx(
         styles.FieldRow,
-        fieldType === "checkbox" && styles.FieldRowCheckbox
+        fieldType === "checkbox" && styles.FieldRowCheckbox,
+        compact && styles.FieldRowCompact
       )}
     >
       {!compact && <label htmlFor={id}>{fieldLabel}</label>}
@@ -57,7 +66,7 @@ export function FieldRow({
           type={fieldType}
           as={fieldAs}
           autoComplete="off"
-          style={compact && meta.error ? { outline: "2px solid #bf0f10" } : {}}
+          style={fieldStyle}
         />
       )}
       {!compact && (

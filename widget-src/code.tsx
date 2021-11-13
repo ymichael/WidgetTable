@@ -324,7 +324,7 @@ function Table() {
     figma.ui.onmessage = (msg: IFrameToWidgetMessage) => {
       switch (msg.type) {
         case "RESIZE":
-          figma.ui.resize(IFRAME_WIDTH, Math.min(600, Math.round(msg.height)));
+          figma.ui.resize(msg.width, Math.min(600, Math.round(msg.height)));
           break;
         case "NEW_ROW":
           syncedTable.appendRow(msg.row.rowData);
@@ -372,14 +372,20 @@ function Table() {
       : [
           {
             itemType: "action",
-            tooltip: "New Row",
+            tooltip: "Insert Row",
             propertyName: "newRow",
             icon: plusSvg,
           },
           {
             itemType: "action",
-            tooltip: "Edit Schema",
+            tooltip: "Edit Table",
             propertyName: "editSchema",
+            icon: databaseSvg,
+          },
+          {
+            itemType: "action",
+            tooltip: "Edit Table",
+            propertyName: "editTable",
             icon: databaseSvg,
           },
           {
@@ -394,6 +400,16 @@ function Table() {
         return showUIWithPayload({
           type: "EDIT_SCHEMA",
           fields: tableSchema,
+        });
+      } else if (propertyName === "editTable") {
+        return showUIWithPayload({
+          type: "FULL_TABLE",
+          fields: tableSchema,
+          rows: syncedTable.getRows().map(([rowKey, row]) => ({
+            rowId: rowKey,
+            rowData: row,
+          })),
+          name: syncedTable.getTitle(),
         });
       } else if (propertyName === "newRow") {
         return showUIWithPayload({

@@ -188,7 +188,7 @@ export function RowFieldEditor({
           compact={compact}
           fieldName={field.fieldId}
           fieldLabel={field.fieldName}
-          fieldAs={compact ? "input" : "textarea"}
+          fieldAs="textarea"
         />
       );
     case FieldType.CHECKBOX:
