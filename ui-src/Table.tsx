@@ -1,6 +1,7 @@
 import * as React from "react";
+import { useMemo, useState } from "react";
 import { Formik, Form } from "formik";
-
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { TableField, TRow } from "../shared/types";
 import {
   RowFieldEditor,
@@ -8,6 +9,15 @@ import {
 } from "./RowEditor";
 import { widthForFieldType } from "../shared/utils";
 import styles from "./Table.module.css";
+
+const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
+  return {
+    userSelect: "none",
+    backgroundColor: "#FFF",
+    marginBottom: "15px",
+    ...draggableStyle,
+  };
+};
 
 export default function Table({
   title,
@@ -18,6 +28,17 @@ export default function Table({
   tableSchema: TableField[];
   rows: TRow[];
 }) {
+  const [rowIdsOrdered, setRowIdsOrdered] = useState<string[]>(
+    rows.map((r) => r.rowId)
+  );
+  const rowById = useMemo<{ [key: string]: TRow }>(() => {
+    const ret: { [key: string]: TRow } = {};
+    rows.forEach((r) => {
+      ret[r.rowId] = r;
+    });
+    return ret;
+  }, [rows]);
+
   return (
     <div className={styles.Table}>
       <div className={styles.TableHeader}>
@@ -27,16 +48,53 @@ export default function Table({
         })}
       </div>
       <div>
-        {rows.map((row, idx) => {
-          return (
-            <TableRow
-              key={row.rowId}
-              rowIdx={idx + 1}
-              tableSchema={tableSchema}
-              row={row}
-            />
-          );
-        })}
+        <DragDropContext
+          onDragEnd={(result) => {
+            if (!result.destination) {
+              return;
+            }
+            const arr = [...rowIdsOrdered];
+            arr.splice(
+              result.destination.index,
+              0,
+              arr.splice(result.source.index, 1)[0]
+            );
+            setRowIdsOrdered(arr);
+          }}
+        >
+          <Droppable droppableId="droppable">
+            {(provided, snapshot) => (
+              <>
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                  {rowIdsOrdered.map((rowId, idx) => {
+                    return (
+                      <Draggable key={rowId} draggableId={rowId} index={idx}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={getItemStyle(
+                              snapshot.isDragging,
+                              provided.draggableProps.style
+                            )}
+                          >
+                            <TableRow
+                              rowIdx={idx + 1}
+                              tableSchema={tableSchema}
+                              row={rowById[rowId]}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                </div>
+                {provided.placeholder}
+              </>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
     </div>
   );
