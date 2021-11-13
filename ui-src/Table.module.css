@@ -1,0 +1,35 @@
+.Table {
+  padding: 10px;
+  border-top: solid 10px #a83ffb;
+}
+
+.TableRow,
+.TableHeader {
+  display: flex;
+  flex-direction: row;
+  padding: 0 15px;
+}
+
+.TableHeader {
+  font-size: 12px;
+  font-weight: 500;
+  color: #2a2a2a;
+  opacity: 0.5;
+  margin-bottom: 10px;
+}
+
+.TableRow {
+  font-size: 14px;
+  font-weight: 400;
+  color: #2a2a2a;
+  margin-bottom: 15px;
+}
+
+.RowIdx {
+  user-select: none;
+  width: 30px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2a2a2a;
+  opacity: 0.5;
+}

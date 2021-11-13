@@ -47,3 +47,12 @@ export const TEST_TABLE_SCHEMA: Table["fields"] = [
     fieldType: FieldType.CHECKBOX,
   },
 ];
+
+export const TEST_TABLE_ROWS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((idx) => ({
+  rowId: `row-${idx}`,
+  rowData: {
+    title: `This is a title ${idx}`,
+    desc: `This is a description ${idx}`,
+    published: idx % 2 == 0,
+  },
+}));

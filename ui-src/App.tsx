@@ -1,10 +1,11 @@
 import * as React from "react";
 import styles from "./App.module.css";
 
-import { TEST_TABLE_SCHEMA } from "./constants";
+import { TEST_TABLE_SCHEMA, TEST_TABLE_ROWS } from "./constants";
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
 import TableNameEditor from "./TableNameEditor";
+import Table from "./Table";
 
 import {
   TableField,
@@ -96,7 +97,7 @@ function getAppRoute(): AppRoute {
     type: RouteType.FULL_TABLE,
     title: "Test Table",
     tableSchema: TEST_TABLE_SCHEMA,
-    rows: [],
+    rows: TEST_TABLE_ROWS,
   };
 }
 
@@ -187,14 +188,16 @@ function Route({ route }: { route: AppRoute }) {
         />
       );
     case RouteType.FULL_TABLE:
-      return <Table />;
+      return (
+        <Table
+          title={route.title}
+          tableSchema={route.tableSchema}
+          rows={route.rows}
+        />
+      );
     default:
       assertUnreachable(route);
   }
-}
-
-function Table() {
-  return <div>hello</div>;
 }
 
 function App() {
