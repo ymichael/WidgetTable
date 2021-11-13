@@ -1,6 +1,6 @@
 import { FieldType, TableField } from "../shared/types";
 import { TRow } from "../shared/types";
-import fractionalIndex from "./fractional-indexing";
+import fractionalIndex from "../shared/fractional-indexing";
 
 export default class SyncedTable {
   ROW_AUTO_INCR_KEY = "row-auto-incr-key";
