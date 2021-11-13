@@ -1,61 +1,113 @@
 import * as React from "react";
 import styles from "./App.module.css";
 
+import { TEST_TABLE_SCHEMA } from "./constants";
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
 import TableNameEditor from "./TableNameEditor";
 
 import {
-  Table,
-  FieldType,
+  TableField,
+  TRow,
   WidgetToIFrameMessage,
   IFrameToWidgetMessage,
 } from "../shared/types";
+import { assertUnreachable } from "../shared/utils";
 
-const TEST_TABLE_SCHEMA: Table["fields"] = [
-  {
-    fieldId: "title",
-    fieldName: "Title",
-    fieldType: FieldType.TEXT_SINGLE_LINE,
-  },
-  {
-    fieldId: "desc",
-    fieldName: "Description",
-    fieldType: FieldType.TEXT_MULTI_LINE,
-  },
-  {
-    fieldId: "published",
-    fieldName: "Published",
-    fieldType: FieldType.CHECKBOX,
-  },
-];
+enum RouteType {
+  SCHEMA_EDITOR,
+  ROW_EDITOR,
+  TITLE_EDITOR,
+  FULL_TABLE,
+}
+
+type AppRoute =
+  | {
+      type: RouteType.SCHEMA_EDITOR;
+      tableSchema: TableField[];
+    }
+  | {
+      type: RouteType.ROW_EDITOR;
+      isEdit: true;
+      tableSchema: TableField[];
+      row: TRow;
+    }
+  | {
+      type: RouteType.ROW_EDITOR;
+      isEdit: false;
+      tableSchema: TableField[];
+    }
+  | {
+      type: RouteType.TITLE_EDITOR;
+      title: string;
+    }
+  | {
+      type: RouteType.FULL_TABLE;
+      title: string;
+      tableSchema: TableField[];
+      rows: TRow[];
+    };
 
 const widgetPayload: WidgetToIFrameMessage | undefined = (window as any)
   .widgetPayload;
-const showSchemaEditor = !!widgetPayload
-  ? widgetPayload.type === "EDIT_SCHEMA"
-  : /schema=1/.test(window.location.search);
-const showTitleEditor = !!widgetPayload
-  ? widgetPayload.type === "RENAME_TABLE"
-  : /title=1/.test(window.location.search);
-const showRowEditor = !showSchemaEditor && !showTitleEditor;
 
-const tableSchema: Table["fields"] = !!widgetPayload
-  ? widgetPayload.fields
-  : TEST_TABLE_SCHEMA;
-const tableName =
-  widgetPayload?.type === "RENAME_TABLE" ? widgetPayload.name : "";
-const rowData =
-  widgetPayload?.type === "EDIT_ROW" ? widgetPayload.row.rowData : {};
+function getAppRoute(): AppRoute {
+  if (widgetPayload) {
+    switch (widgetPayload.type) {
+      case "EDIT_SCHEMA":
+        return {
+          type: RouteType.SCHEMA_EDITOR,
+          tableSchema: widgetPayload.fields,
+        };
+      case "NEW_ROW":
+        return {
+          type: RouteType.ROW_EDITOR,
+          isEdit: false,
+          tableSchema: widgetPayload.fields,
+        };
+      case "EDIT_ROW":
+        return {
+          type: RouteType.ROW_EDITOR,
+          isEdit: true,
+          tableSchema: widgetPayload.fields,
+          row: widgetPayload.row,
+        };
+      case "RENAME_TABLE":
+        return {
+          type: RouteType.TITLE_EDITOR,
+          title: widgetPayload.name,
+        };
+    }
+  } else {
+    if (/schema=1/.test(window.location.search)) {
+      return {
+        type: RouteType.SCHEMA_EDITOR,
+        tableSchema: TEST_TABLE_SCHEMA,
+      };
+    }
+    if (/title=1/.test(window.location.search)) {
+      return {
+        type: RouteType.TITLE_EDITOR,
+        title: "Test Table",
+      };
+    }
+  }
+  return {
+    type: RouteType.FULL_TABLE,
+    title: "Test Table",
+    tableSchema: TEST_TABLE_SCHEMA,
+    rows: [],
+  };
+}
 
-function App() {
-  return (
-    <div className={styles.App}>
-      {showSchemaEditor ? (
+function Route({ route }: { route: AppRoute }) {
+  switch (route.type) {
+    case RouteType.SCHEMA_EDITOR:
+      return (
         <SchemaEditor
-          initialValues={{ fields: tableSchema }}
+          initialValues={{ fields: route.tableSchema }}
           onSubmit={(v, closeIframe) => {
-            if (widgetPayload?.type === "EDIT_SCHEMA") {
+            if (widgetPayload) {
               const payload: IFrameToWidgetMessage = {
                 type: "UPDATE_SCHEMA",
                 closeIframe,
@@ -67,18 +119,20 @@ function App() {
             }
           }}
         />
-      ) : showRowEditor ? (
+      );
+    case RouteType.ROW_EDITOR:
+      return (
         <RowEditor
-          tableSchema={tableSchema}
-          initialValues={rowData}
-          isEdit={widgetPayload?.type === "EDIT_ROW"}
+          tableSchema={route.tableSchema}
+          initialValues={route.isEdit ? route.row.rowData : {}}
+          isEdit={route.isEdit}
           onEdit={(v, closeIframe) => {
-            if (widgetPayload?.type === "EDIT_ROW") {
+            if (widgetPayload && route.isEdit) {
               const payload: IFrameToWidgetMessage = {
                 type: "EDIT_ROW",
                 closeIframe,
                 row: {
-                  rowId: widgetPayload.row.rowId,
+                  rowId: route.row.rowId,
                   rowData: v,
                 },
               };
@@ -88,11 +142,11 @@ function App() {
             }
           }}
           onDelete={() => {
-            if (widgetPayload?.type === "EDIT_ROW") {
+            if (widgetPayload && route.isEdit) {
               const payload: IFrameToWidgetMessage = {
                 type: "DELETE_ROW",
                 row: {
-                  rowId: widgetPayload.row.rowId,
+                  rowId: route.row.rowId,
                 },
               };
               parent?.postMessage({ pluginMessage: payload }, "*");
@@ -113,9 +167,11 @@ function App() {
             }
           }}
         />
-      ) : (
+      );
+    case RouteType.TITLE_EDITOR:
+      return (
         <TableNameEditor
-          name={tableName}
+          name={route.title}
           onSubmit={({ name }, closeIframe) => {
             if (!!widgetPayload) {
               const payload: IFrameToWidgetMessage = {
@@ -129,7 +185,23 @@ function App() {
             }
           }}
         />
-      )}
+      );
+    case RouteType.FULL_TABLE:
+      return <Table />;
+    default:
+      assertUnreachable(route);
+  }
+}
+
+function Table() {
+  return <div>hello</div>;
+}
+
+function App() {
+  const appRoute = getAppRoute();
+  return (
+    <div className={styles.App}>
+      <Route route={appRoute} />
     </div>
   );
 }

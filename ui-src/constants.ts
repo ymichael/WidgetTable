@@ -1,4 +1,4 @@
-import { FieldType } from "../shared/types";
+import { Table, FieldType } from "../shared/types";
 
 export const FIELD_TYPE_READABLE: Record<FieldType, string> = {
   TEXT_SINGLE_LINE: "Single line text",
@@ -29,3 +29,21 @@ export const FIELD_TYPE_DESCRIPTION: Record<FieldType, string> = {
   SELECT_MULTIPLE:
     "The multi select field is similar to the single select field but allows for multiple options to be chosen.",
 };
+
+export const TEST_TABLE_SCHEMA: Table["fields"] = [
+  {
+    fieldId: "title",
+    fieldName: "Title",
+    fieldType: FieldType.TEXT_SINGLE_LINE,
+  },
+  {
+    fieldId: "desc",
+    fieldName: "Description",
+    fieldType: FieldType.TEXT_MULTI_LINE,
+  },
+  {
+    fieldId: "published",
+    fieldName: "Published",
+    fieldType: FieldType.CHECKBOX,
+  },
+];
