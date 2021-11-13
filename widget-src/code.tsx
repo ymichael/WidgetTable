@@ -449,7 +449,7 @@ function Table() {
       >
         <AutoLayout direction="vertical" spacing={10}>
           <ButtonRow
-            width={400}
+            width={300}
             onClick={() => {
               syncedTable.setSchema(DEFAULT_SCHEMA);
               return showUIWithPayload({
@@ -461,7 +461,7 @@ function Table() {
             Create Table
           </ButtonRow>
           <ButtonRow
-            width={400}
+            width={300}
             onClick={() => {
               const stickies = figma.currentPage.findChildren(
                 isSticky
@@ -472,7 +472,7 @@ function Table() {
             {"Import all stickies"}
           </ButtonRow>
           <ButtonRow
-            width={400}
+            width={300}
             onClick={() => {
               const stickies: StickyNode[] =
                 figma.currentPage.selection.filter(isSticky);
