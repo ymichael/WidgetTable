@@ -1,8 +1,10 @@
 import * as React from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { Formik, Form } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { TableField, TRow } from "../shared/types";
+import AutoSubmitter from "./AutoSubmitter";
+import Gear from "./icons/Gear";
 import {
   RowFieldEditor,
   generateValidationSchemaFromTableSchema,
@@ -19,52 +21,50 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
   };
 };
 
-function SettingsSvg() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#2A2A2A"
-      stroke-width="1"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <circle cx="12" cy="12" r="3"></circle>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-    </svg>
-  );
-}
-
 export default function Table({
   title,
   tableSchema,
   rows,
+  onRowEdit,
+  onRowReorder,
 }: {
   title: string;
   tableSchema: TableField[];
   rows: TRow[];
+  onRowEdit: (rowId: TRow["rowId"], v: TRow["rowData"]) => void;
+  onRowReorder: (args: {
+    rowId: TRow["rowId"];
+    beforeRowId: TRow["rowId"] | null;
+    afterRowId: TRow["rowId"] | null;
+  }) => void;
 }) {
   const [rowIdsOrdered, setRowIdsOrdered] = useState<string[]>(
     rows.map((r) => r.rowId)
   );
-  const rowById = useMemo<{ [key: string]: TRow }>(() => {
+  useEffect(() => {
+    setRowIdsOrdered(rows.map((r) => r.rowId));
+  }, [rows]);
+  const rowById = useMemo(() => {
     const ret: { [key: string]: TRow } = {};
     rows.forEach((r) => {
       ret[r.rowId] = r;
     });
     return ret;
   }, [rows]);
+  const validationSchema = useMemo(() => {
+    generateValidationSchemaFromTableSchema(tableSchema);
+  }, tableSchema);
+  const onRowEditInner = useCallback((row, v) => {
+    onRowEdit(row.rowId, v);
+  }, []);
 
   return (
     <div className={styles.Table}>
       <div className={styles.TableHeader}>
-        <div style={{ margin: "0 10px" }}></div>
+        <div className={styles.TableHeaderSpacer}></div>
         {title}
-        <div style={{ margin: "0 10px" }}>
-          <SettingsSvg />
+        <div className={styles.TableHeaderSpacer}>
+          <Gear />
         </div>
       </div>
       <div className={styles.TableColumnHeader}>
@@ -76,17 +76,25 @@ export default function Table({
       <div>
         <DragDropContext
           onDragEnd={(result) => {
-            console.log({ result });
             if (!result.destination) {
               return;
             }
-            const arr = [...rowIdsOrdered];
-            arr.splice(
+            if (result.destination.index === result.source.index) {
+              return;
+            }
+            const copyOfRowIds = [...rowIdsOrdered];
+            const rowIdToMove = copyOfRowIds[result.source.index];
+            copyOfRowIds.splice(
               result.destination.index,
               0,
-              arr.splice(result.source.index, 1)[0]
+              copyOfRowIds.splice(result.source.index, 1)[0]
             );
-            setRowIdsOrdered(arr);
+            const beforeRowId =
+              copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) - 1] ?? null;
+            const afterRowId =
+              copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) + 1] ?? null;
+            setRowIdsOrdered(copyOfRowIds);
+            onRowReorder({ rowId: rowIdToMove, afterRowId, beforeRowId });
           }}
         >
           <Droppable droppableId="droppable">
@@ -95,25 +103,29 @@ export default function Table({
                 <div {...provided.droppableProps} ref={provided.innerRef}>
                   {rowIdsOrdered.map((rowId, idx) => {
                     return (
-                      <Draggable key={rowId} draggableId={rowId} index={idx}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            style={getItemStyle(
-                              snapshot.isDragging,
-                              provided.draggableProps.style
-                            )}
-                          >
-                            <TableRow
-                              rowIdx={idx + 1}
-                              tableSchema={tableSchema}
-                              row={rowById[rowId]}
-                              dragHandleProps={provided.dragHandleProps}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
+                      rowById[rowId] && (
+                        <Draggable key={rowId} draggableId={rowId} index={idx}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              style={getItemStyle(
+                                snapshot.isDragging,
+                                provided.draggableProps.style
+                              )}
+                            >
+                              <TableRow
+                                rowIdx={idx + 1}
+                                tableSchema={tableSchema}
+                                row={rowById[rowId]}
+                                validationSchema={validationSchema}
+                                dragHandleProps={provided.dragHandleProps}
+                                onEdit={onRowEditInner}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      )
                     );
                   })}
                 </div>
@@ -148,46 +160,81 @@ function TableRow({
   row,
   rowIdx,
   dragHandleProps,
+  validationSchema,
+  onEdit,
 }: {
   tableSchema: TableField[];
   row: TRow;
   rowIdx: number;
   dragHandleProps: any;
+  validationSchema: any;
+  onEdit: (row: TRow, v: { [key: string]: any }) => void;
 }) {
   return (
     <div className={styles.TableRow}>
-      <div {...dragHandleProps} style={{ padding: "10px 0" }}>
+      <div
+        {...dragHandleProps}
+        style={{ padding: "10px 0" }}
+        // Don't allow keyboard to TAB into the index
+        tabIndex={-1}
+      >
         <RowIdx idx={rowIdx} />
       </div>
-      <Formik
-        initialValues={row.rowData}
-        validationSchema={generateValidationSchemaFromTableSchema(tableSchema)}
-        onSubmit={(values, { setSubmitting }) => {
-          console.log({ values });
-          setSubmitting(false);
-        }}
-      >
-        {(formik) => {
-          return (
-            <Form onSubmit={formik.handleSubmit}>
-              <div className={styles.TableRowInner}>
-                {tableSchema.map((field) => {
-                  return (
-                    <TableCell
-                      key={field.fieldId}
-                      field={field}
-                      value={row.rowData[field.fieldId]}
-                    />
-                  );
-                })}
-              </div>
-            </Form>
-          );
-        }}
-      </Formik>
+      <TableRowFormMemo
+        row={row}
+        validationSchema={validationSchema}
+        tableSchema={tableSchema}
+        onEdit={onEdit}
+      />
     </div>
   );
 }
+
+function TableRowForm({
+  row,
+  tableSchema,
+  validationSchema,
+  onEdit,
+}: {
+  row: TRow;
+  tableSchema: TableField[];
+  validationSchema: any;
+  onEdit: (row: TRow, v: { [key: string]: any }) => void;
+}) {
+  return (
+    <Formik
+      initialValues={row.rowData}
+      validationSchema={validationSchema}
+      onSubmit={(values, { setSubmitting }) => {
+        setSubmitting(false);
+      }}
+    >
+      {(formik) => {
+        return (
+          <Form onSubmit={formik.handleSubmit}>
+            <AutoSubmitter
+              formik={formik}
+              onAutoSubmit={(v) => onEdit(row, v)}
+            />
+            <div className={styles.TableRowInner}>
+              {tableSchema.map((field) => {
+                return (
+                  <TableCell
+                    key={field.fieldId}
+                    field={field}
+                    value={row.rowData[field.fieldId]}
+                  />
+                );
+              })}
+            </div>
+          </Form>
+        );
+      }}
+    </Formik>
+  );
+}
+
+const TableRowFormMemo = React.memo(TableRowForm);
 
 function TableCell({ field, value }: { field: TableField; value: any }) {
   return (

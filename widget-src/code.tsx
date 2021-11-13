@@ -3,7 +3,8 @@ import {
   FieldType,
   TRow,
   IFrameToWidgetMessage,
-  WidgetToIFrameMessage,
+  WidgetToIFramePostMessage,
+  WidgetToIFrameShowUIMessage,
 } from "../shared/types";
 import {
   DEFAULT_SCHEMA,
@@ -58,7 +59,9 @@ function importStickies(
   });
 }
 
-function getInitialHeightForPayload(payload: WidgetToIFrameMessage): number {
+function getInitialHeightForPayload(
+  payload: WidgetToIFrameShowUIMessage
+): number {
   switch (payload.type) {
     case "EDIT_SCHEMA":
       return 600;
@@ -69,7 +72,9 @@ function getInitialHeightForPayload(payload: WidgetToIFrameMessage): number {
   }
 }
 
-const showUIWithPayload = (payload: WidgetToIFrameMessage): Promise<void> => {
+const showUIWithPayload = (
+  payload: WidgetToIFrameShowUIMessage
+): Promise<void> => {
   return new Promise(() => {
     figma.showUI(
       `<script>
@@ -348,6 +353,23 @@ function Table() {
             figma.closePlugin();
           }
           break;
+        case "REORDER_ROW":
+          const newRowId = syncedTable.moveRow(
+            msg.rowId,
+            msg.beforeRowId,
+            msg.afterRowId
+          );
+          if (newRowId) {
+            const message: WidgetToIFramePostMessage = {
+              type: "UPDATE_ROW_ORDER",
+              orderedRowIds: syncedTable.getRowIdsOrdered(),
+              updatedRowIds: {
+                [msg.rowId]: newRowId,
+              },
+            };
+            figma.ui.postMessage(message);
+          }
+          break;
         case "UPDATE_SCHEMA":
           syncedTable.setSchema(
             msg.fields.map((field) => {
@@ -375,12 +397,6 @@ function Table() {
             tooltip: "Insert Row",
             propertyName: "newRow",
             icon: plusSvg,
-          },
-          {
-            itemType: "action",
-            tooltip: "Edit Table",
-            propertyName: "editSchema",
-            icon: databaseSvg,
           },
           {
             itemType: "action",

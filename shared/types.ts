@@ -46,7 +46,15 @@ export type TRow = {
   rowData: { [key: string]: any };
 };
 
-export type WidgetToIFrameMessage = { fields: TableField[] } & (
+export type WidgetToIFramePostMessage = {
+  type: "UPDATE_ROW_ORDER";
+  orderedRowIds: TRow["rowId"][];
+  updatedRowIds: {
+    [oldRowId: TRow["rowId"]]: TRow["rowId"];
+  };
+};
+
+export type WidgetToIFrameShowUIMessage = { fields: TableField[] } & (
   | {
       type: "EDIT_SCHEMA";
     }
@@ -83,6 +91,12 @@ export type IFrameToWidgetMessage =
       type: "EDIT_ROW";
       closeIframe: boolean;
       row: TRow;
+    }
+  | {
+      type: "REORDER_ROW";
+      rowId: TRow["rowId"];
+      afterRowId: TRow["rowId"] | null;
+      beforeRowId: TRow["rowId"] | null;
     }
   | {
       type: "NEW_ROW";

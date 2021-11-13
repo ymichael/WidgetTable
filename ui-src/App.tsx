@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
 import styles from "./App.module.css";
 
 import { TEST_TABLE_SCHEMA, TEST_TABLE_ROWS } from "./constants";
@@ -10,7 +11,8 @@ import Table from "./Table";
 import {
   TableField,
   TRow,
-  WidgetToIFrameMessage,
+  WidgetToIFrameShowUIMessage,
+  WidgetToIFramePostMessage,
   IFrameToWidgetMessage,
 } from "../shared/types";
 import { assertUnreachable } from "../shared/utils";
@@ -49,7 +51,7 @@ type AppRoute =
       rows: TRow[];
     };
 
-const widgetPayload: WidgetToIFrameMessage | undefined = (window as any)
+const widgetPayload: WidgetToIFrameShowUIMessage | undefined = (window as any)
   .widgetPayload;
 
 function getAppRoute(): AppRoute {
@@ -207,6 +209,34 @@ function Route({ route }: { route: AppRoute }) {
           title={route.title}
           tableSchema={route.tableSchema}
           rows={route.rows}
+          onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
+            if (widgetPayload) {
+              const payload: IFrameToWidgetMessage = {
+                type: "REORDER_ROW",
+                rowId,
+                afterRowId,
+                beforeRowId,
+              };
+              parent?.postMessage({ pluginMessage: payload }, "*");
+            } else {
+              console.log({ rowId: rowId, afterRowId, beforeRowId });
+            }
+          }}
+          onRowEdit={(rowId, v) => {
+            if (widgetPayload) {
+              const payload: IFrameToWidgetMessage = {
+                type: "EDIT_ROW",
+                closeIframe: false,
+                row: {
+                  rowId,
+                  rowData: v,
+                },
+              };
+              parent?.postMessage({ pluginMessage: payload }, "*");
+            } else {
+              console.log({ onRowEdit: v });
+            }
+          }}
         />
       );
     default:
@@ -215,10 +245,35 @@ function Route({ route }: { route: AppRoute }) {
 }
 
 function App() {
-  const appRoute = getAppRoute();
+  const [route, setRoute] = useState<AppRoute>(() => getAppRoute());
+  useEffect(() => {
+    if (!widgetPayload) {
+      return;
+    }
+    window.onmessage = (event: any) => {
+      const evt = event.data?.pluginMessage as WidgetToIFramePostMessage | null;
+      if (evt?.type === "UPDATE_ROW_ORDER") {
+        const { orderedRowIds, updatedRowIds } = evt;
+        if (widgetPayload.type === "FULL_TABLE") {
+          const rowById: { [id: TRow["rowId"]]: TRow } = {};
+          widgetPayload.rows.forEach((existingRow) => {
+            // Try not to mutate existing rows as much as possible.
+            if (updatedRowIds[existingRow.rowId]) {
+              existingRow.rowId = updatedRowIds[existingRow.rowId];
+            }
+            rowById[existingRow.rowId] = existingRow;
+          });
+          widgetPayload.rows = orderedRowIds.map((rowId) => {
+            return rowById[rowId];
+          });
+          setRoute(getAppRoute());
+        }
+      }
+    };
+  }, []);
   return (
     <div className={styles.App}>
-      <Route route={appRoute} />
+      <Route route={route} />
     </div>
   );
 }

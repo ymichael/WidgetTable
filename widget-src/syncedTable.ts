@@ -71,6 +71,35 @@ export default class SyncedTable {
     this.rows.set(rowId, this.sanitizeRow(rowData));
   }
 
+  moveRow(
+    rowId: string,
+    beforeRowId: string | null,
+    afterRowId: string | null
+  ): string | null {
+    const oldRowId = rowId;
+    const row = this.rows.get(rowId);
+    if (!row) {
+      console.error(`Attempting to re-order non-existent rowId: ${rowId}`);
+      return null;
+    }
+    const newRowId = fractionalIndex(beforeRowId, afterRowId);
+    if (oldRowId === newRowId) {
+      return null;
+    }
+
+    // TODO what happens if rows are re-ordered while voting
+    this.rows.delete(oldRowId);
+    this.rows.set(newRowId, row);
+    this.votes.keys().forEach((voteKey) => {
+      const { rowId, fieldId, userId } = this.fromVoteKey(voteKey);
+      if (rowId === oldRowId) {
+        this.votes.delete(voteKey);
+        this.toggleVote({ rowId: newRowId, fieldId, userId });
+      }
+    });
+    return newRowId;
+  }
+
   deleteRow(rowId: string): void {
     this.rows.delete(rowId);
   }
@@ -131,10 +160,15 @@ export default class SyncedTable {
     }
   }
 
-  getRows(): [string, TRow["rowData"]][] {
-    const votesMap = this.getVotesMap();
+  getRowIdsOrdered(): TRow["rowId"][] {
     const rowKeys = this.rows.keys();
     rowKeys.sort();
+    return rowKeys;
+  }
+
+  getRows(): [string, TRow["rowData"]][] {
+    const votesMap = this.getVotesMap();
+    const rowKeys = this.getRowIdsOrdered();
     return rowKeys.map((k) => {
       const rowData = {
         ...this.rows.get(k),
