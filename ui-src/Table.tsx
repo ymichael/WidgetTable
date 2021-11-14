@@ -25,12 +25,14 @@ export default function Table({
   tableSchema,
   rows,
   onRowEdit,
+  onAppendRow,
   onRowReorder,
 }: {
   title: string;
   tableSchema: TableField[];
   rows: TRow[];
   onRowEdit: (rowId: TRow["rowId"], v: TRow["rowData"]) => void;
+  onAppendRow: () => TRow["rowId"];
   onRowReorder: (args: {
     rowId: TRow["rowId"];
     beforeRowId: TRow["rowId"] | null;
@@ -127,6 +129,7 @@ export default function Table({
                       )
                     );
                   })}
+                  <TableAddRow tableSchema={tableSchema} onAdd={onAppendRow} />
                 </div>
                 {provided.placeholder}
               </>
@@ -202,6 +205,39 @@ function TableRow({
   );
 }
 
+function TableAddRow({
+  tableSchema,
+  onAdd,
+}: {
+  tableSchema: TableField[];
+  onAdd: () => void;
+}) {
+  return (
+    <div className={styles.TableRow} onClick={onAdd}>
+      <RowIdx />
+      <div className={styles.TableRowInner}>
+        {tableSchema.map((field) => {
+          return (
+            <CellBox key={field.fieldId} field={field}>
+              <textarea
+                disabled
+                autoComplete="off"
+                style={{
+                  resize: "none",
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  outline: "none",
+                }}
+              />
+            </CellBox>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function TableRowForm({
   row,
   tableSchema,
@@ -229,9 +265,10 @@ function TableRowForm({
               onAutoSubmit={(v) => onEdit(row, v)}
             />
             <div className={styles.TableRowInner}>
-              {tableSchema.map((field) => {
+              {tableSchema.map((field, idx) => {
                 return (
                   <TableCell
+                    autoFocus={idx === 0}
                     key={field.fieldId}
                     field={field}
                     value={row.rowData[field.fieldId]}
@@ -248,18 +285,32 @@ function TableRowForm({
 
 const TableRowFormMemo = React.memo(TableRowForm);
 
-function TableCell({ field, value }: { field: TableField; value: any }) {
+function TableCell({
+  field,
+  value,
+  autoFocus = false,
+}: {
+  field: TableField;
+  value: any;
+  autoFocus?: boolean;
+}) {
   const fieldName = field.fieldId;
   const [, meta] = useField(fieldName);
   return (
     <CellBox field={field} isError={!!meta.error}>
-      <CellEditor field={field} />
+      <CellEditor field={field} autoFocus={autoFocus} />
       {meta.error && <div className={styles.ErrorMsg}>{meta.error}</div>}
     </CellBox>
   );
 }
 
-function CellEditor({ field }: { field: TableField }) {
+function CellEditor({
+  field,
+  autoFocus = false,
+}: {
+  field: TableField;
+  autoFocus?: boolean;
+}) {
   const fieldName = field.fieldId;
   const fieldType = field.fieldType;
   switch (fieldType) {
@@ -272,6 +323,7 @@ function CellEditor({ field }: { field: TableField }) {
         <Field
           name={fieldName}
           as="textarea"
+          autoFocus={autoFocus}
           autoComplete="off"
           style={{
             resize: "none",

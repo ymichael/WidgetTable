@@ -1,4 +1,5 @@
 import { Table, FieldType } from "../shared/types";
+import fractionalIndex from "../shared/fractional-indexing";
 
 export const FIELD_TYPE_READABLE: Record<FieldType, string> = {
   TEXT_SINGLE_LINE: "Single line text",
@@ -58,8 +59,6 @@ export const TEST_TABLE_SCHEMA: Table["fields"] = [
     fieldId: "email",
     fieldName: "Email",
     fieldType: FieldType.EMAIL,
-    fieldPrefix: "",
-    fieldSuffix: "",
   },
   {
     fieldId: "published",
@@ -68,13 +67,19 @@ export const TEST_TABLE_SCHEMA: Table["fields"] = [
   },
 ];
 
-export const TEST_TABLE_ROWS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((idx) => ({
-  rowId: `row-${idx}`,
-  rowData: {
-    title: `This is a title ${idx}`,
-    desc: `This is a description ${idx}`,
-    ied: Math.max(idx % 3 || 0.5),
-    priority: "P1",
-    published: idx % 2 == 0,
-  },
-}));
+let prevId = "a0";
+
+export const TEST_TABLE_ROWS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((idx) => {
+  const rowId = fractionalIndex(prevId, null);
+  prevId = rowId;
+  return {
+    rowId,
+    rowData: {
+      title: `This is a title ${idx}`,
+      desc: `This is a description ${idx}`,
+      ied: Math.max(idx % 3 || 0.5),
+      priority: "P1",
+      published: idx % 2 == 0,
+    },
+  };
+});

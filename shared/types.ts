@@ -88,7 +88,7 @@ export type IFrameToWidgetMessage =
       fields: TableField[];
     }
   | {
-      type: "EDIT_ROW";
+      type: "UPSERT_ROW";
       closeIframe: boolean;
       row: TRow;
     }

@@ -337,7 +337,7 @@ function Table() {
             figma.closePlugin();
           }
           break;
-        case "EDIT_ROW":
+        case "UPSERT_ROW":
           syncedTable.updateRow(msg.row.rowId, msg.row.rowData);
           if (msg.closeIframe) {
             figma.closePlugin();

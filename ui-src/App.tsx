@@ -2,122 +2,55 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import styles from "./App.module.css";
 
-import { TEST_TABLE_SCHEMA, TEST_TABLE_ROWS } from "./constants";
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
 import TableNameEditor from "./TableNameEditor";
 import Table from "./Table";
 
 import {
-  TableField,
   TRow,
   WidgetToIFrameShowUIMessage,
   WidgetToIFramePostMessage,
   IFrameToWidgetMessage,
 } from "../shared/types";
+import fractionalIndex from "../shared/fractional-indexing";
 import { assertUnreachable } from "../shared/utils";
-
-enum RouteType {
-  SCHEMA_EDITOR,
-  ROW_EDITOR,
-  TITLE_EDITOR,
-  FULL_TABLE,
-}
-
-type AppRoute =
-  | {
-      type: RouteType.SCHEMA_EDITOR;
-      tableSchema: TableField[];
-    }
-  | {
-      type: RouteType.ROW_EDITOR;
-      isEdit: true;
-      tableSchema: TableField[];
-      row: TRow;
-    }
-  | {
-      type: RouteType.ROW_EDITOR;
-      isEdit: false;
-      tableSchema: TableField[];
-    }
-  | {
-      type: RouteType.TITLE_EDITOR;
-      title: string;
-    }
-  | {
-      type: RouteType.FULL_TABLE;
-      title: string;
-      tableSchema: TableField[];
-      rows: TRow[];
-    };
+import { getAppRoute, AppRoute, RouteType } from "./router";
 
 const widgetPayload: WidgetToIFrameShowUIMessage | undefined = (window as any)
   .widgetPayload;
 
-function getAppRoute(): AppRoute {
-  if (widgetPayload) {
-    switch (widgetPayload.type) {
-      case "FULL_TABLE":
-        return {
-          type: RouteType.FULL_TABLE,
-          tableSchema: widgetPayload.fields,
-          title: widgetPayload.name,
-          rows: widgetPayload.rows,
-        };
-      case "EDIT_SCHEMA":
-        return {
-          type: RouteType.SCHEMA_EDITOR,
-          tableSchema: widgetPayload.fields,
-        };
-      case "NEW_ROW":
-        return {
-          type: RouteType.ROW_EDITOR,
-          isEdit: false,
-          tableSchema: widgetPayload.fields,
-        };
-      case "EDIT_ROW":
-        return {
-          type: RouteType.ROW_EDITOR,
-          isEdit: true,
-          tableSchema: widgetPayload.fields,
-          row: widgetPayload.row,
-        };
-      case "RENAME_TABLE":
-        return {
-          type: RouteType.TITLE_EDITOR,
-          title: widgetPayload.name,
-        };
+function AppPage({ route }: { route: AppRoute }) {
+  const [rows, setRows] = useState<TRow[]>(
+    route.type === RouteType.FULL_TABLE ? route.rows : []
+  );
+  useEffect(() => {
+    if (!widgetPayload) {
+      return;
     }
-  } else {
-    if (/schema=1/.test(window.location.search)) {
-      return {
-        type: RouteType.SCHEMA_EDITOR,
-        tableSchema: TEST_TABLE_SCHEMA,
-      };
-    }
-    if (/editor=1/.test(window.location.search)) {
-      return {
-        type: RouteType.ROW_EDITOR,
-        tableSchema: TEST_TABLE_SCHEMA,
-        isEdit: false,
-      };
-    }
-    if (/title=1/.test(window.location.search)) {
-      return {
-        type: RouteType.TITLE_EDITOR,
-        title: "Test Table",
-      };
-    }
-  }
-  return {
-    type: RouteType.FULL_TABLE,
-    title: "Test Table",
-    tableSchema: TEST_TABLE_SCHEMA,
-    rows: TEST_TABLE_ROWS,
-  };
-}
+    window.onmessage = (event: any) => {
+      const evt = event.data?.pluginMessage as WidgetToIFramePostMessage | null;
+      if (!evt) {
+        console.warn(`Unknown event: ${evt}`);
+        return;
+      }
+      if (evt.type === "UPDATE_ROW_ORDER") {
+        const { orderedRowIds, updatedRowIds } = evt;
+        if (widgetPayload.type === "FULL_TABLE") {
+          const rowById: { [id: TRow["rowId"]]: TRow } = {};
+          rows.forEach((existingRow) => {
+            // Try not to mutate existing rows as much as possible.
+            if (updatedRowIds[existingRow.rowId]) {
+              existingRow.rowId = updatedRowIds[existingRow.rowId];
+            }
+            rowById[existingRow.rowId] = existingRow;
+          });
+          setRows(orderedRowIds.map((rowId) => rowById[rowId]));
+        }
+      }
+    };
+  }, []);
 
-function Route({ route }: { route: AppRoute }) {
   switch (route.type) {
     case RouteType.SCHEMA_EDITOR:
       return (
@@ -146,7 +79,7 @@ function Route({ route }: { route: AppRoute }) {
           onEdit={(v, closeIframe) => {
             if (widgetPayload && route.isEdit) {
               const payload: IFrameToWidgetMessage = {
-                type: "EDIT_ROW",
+                type: "UPSERT_ROW",
                 closeIframe,
                 row: {
                   rowId: route.row.rowId,
@@ -208,7 +141,7 @@ function Route({ route }: { route: AppRoute }) {
         <Table
           title={route.title}
           tableSchema={route.tableSchema}
-          rows={route.rows}
+          rows={rows}
           onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
             if (widgetPayload) {
               const payload: IFrameToWidgetMessage = {
@@ -222,10 +155,26 @@ function Route({ route }: { route: AppRoute }) {
               console.log({ rowId: rowId, afterRowId, beforeRowId });
             }
           }}
+          onAppendRow={() => {
+            const newRowId = fractionalIndex(
+              rows[rows.length - 1].rowId || "a0",
+              null
+            );
+            setRows([...rows, { rowId: newRowId, rowData: {} }]);
+            if (!!widgetPayload) {
+              const payload: IFrameToWidgetMessage = {
+                type: "UPSERT_ROW",
+                closeIframe: false,
+                row: { rowId: newRowId, rowData: {} },
+              };
+              parent?.postMessage({ pluginMessage: payload }, "*");
+            }
+            return newRowId;
+          }}
           onRowEdit={(rowId, v) => {
             if (widgetPayload) {
               const payload: IFrameToWidgetMessage = {
-                type: "EDIT_ROW",
+                type: "UPSERT_ROW",
                 closeIframe: false,
                 row: {
                   rowId,
@@ -245,35 +194,9 @@ function Route({ route }: { route: AppRoute }) {
 }
 
 function App() {
-  const [route, setRoute] = useState<AppRoute>(() => getAppRoute());
-  useEffect(() => {
-    if (!widgetPayload) {
-      return;
-    }
-    window.onmessage = (event: any) => {
-      const evt = event.data?.pluginMessage as WidgetToIFramePostMessage | null;
-      if (evt?.type === "UPDATE_ROW_ORDER") {
-        const { orderedRowIds, updatedRowIds } = evt;
-        if (widgetPayload.type === "FULL_TABLE") {
-          const rowById: { [id: TRow["rowId"]]: TRow } = {};
-          widgetPayload.rows.forEach((existingRow) => {
-            // Try not to mutate existing rows as much as possible.
-            if (updatedRowIds[existingRow.rowId]) {
-              existingRow.rowId = updatedRowIds[existingRow.rowId];
-            }
-            rowById[existingRow.rowId] = existingRow;
-          });
-          widgetPayload.rows = orderedRowIds.map((rowId) => {
-            return rowById[rowId];
-          });
-          setRoute(getAppRoute());
-        }
-      }
-    };
-  }, []);
   return (
     <div className={styles.App}>
-      <Route route={route} />
+      <AppPage route={getAppRoute()} />
     </div>
   );
 }

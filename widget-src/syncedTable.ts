@@ -17,7 +17,7 @@ export default class SyncedTable {
     this.updateNonVoteFieldIds();
   }
 
-  private genRowId(): number {
+  private genRowId(): string {
     const currKey = this.metadata.get(this.ROW_AUTO_INCR_KEY) || "a0";
     const nextRowId = fractionalIndex(String(currKey), null);
     this.metadata.set(this.ROW_AUTO_INCR_KEY, nextRowId);
