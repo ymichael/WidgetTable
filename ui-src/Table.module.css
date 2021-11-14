@@ -1,7 +1,8 @@
 .Table {
   border: solid 1px #eee;
-  border-top: solid 10px #a83ffb;
-  overflow: scroll;
+  border-top: solid 2px #a83ffb;
+  position: relative;
+  display: table;
 }
 
 .Table h1 {
@@ -12,12 +13,23 @@
   margin: 0;
 }
 
+.uSticky {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 .TableHeader {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   padding: 5px 0;
+  width: 100vw;
+}
+
+.TableBody {
+  display: table;
 }
 
 .TableHeaderSpacer {
@@ -27,6 +39,7 @@
 .TableRowInner {
   display: flex;
   flex-direction: row;
+  flex-grow: 100;
   align-items: stretch;
 }
 
@@ -39,16 +52,11 @@
   align-items: stretch;
 }
 
-.TableRow > *,
-.TableColumnHeader > * {
-  flex-shrink: 0;
-}
-
 .TableColumnHeader {
   font-size: 12px;
   font-weight: 500;
   color: rgba(42, 42, 42, 0.5);
-  background-color: rgba(42, 42, 42, 0.05);
+  background-color: rgba(245, 245, 245, 1);
   border-top: solid 1px rgba(42, 42, 42, 0.1);
   border-bottom: solid 1px rgba(42, 42, 42, 0.1);
 }
@@ -61,10 +69,16 @@
   border-top: solid 1px #eee;
 }
 
+.TableRowForm {
+  display: flex;
+  flex-grow: 1;
+}
+
 .RowIdx {
   user-select: none;
-  padding-left: 10px;
-  width: 30px;
+  margin-left: 10px;
+  padding: 10px;
+  min-width: 20px;
   font-size: 12px;
   font-weight: 500;
   color: #2a2a2a;

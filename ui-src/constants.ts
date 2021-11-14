@@ -69,7 +69,15 @@ export const TEST_TABLE_SCHEMA: Table["fields"] = [
 
 let prevId = "a0";
 
-export const TEST_TABLE_ROWS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((idx) => {
+const range = (idx: number) => {
+  const ret = [];
+  for (let i = 0; i < idx; i++) {
+    ret.push(i);
+  }
+  return ret;
+};
+
+export const TEST_TABLE_ROWS = range(50).map((idx) => {
   const rowId = fractionalIndex(prevId, null);
   prevId = rowId;
   return {

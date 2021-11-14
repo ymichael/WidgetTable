@@ -22,7 +22,3 @@ code {
     monospace;
   font-display: block;
 }
-
-#root {
-  display: table;
-}

@@ -5,7 +5,22 @@
   width: 500px;
   right: 0;
   top: 0;
+  z-index: 99;
   background-color: #fff;
   border-left: solid 1px #eee;
   box-shadow: -1px 0px 0px 0px rgba(238, 238, 238, 0.3);
+}
+
+.SidecarOverlay {
+  position: absolute;
+  top: -500px;
+  bottom: -500px;
+  left: -500px;
+  right: -500px;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.SidecarOpen {
+  overflow: hidden;
 }

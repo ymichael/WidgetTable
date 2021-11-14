@@ -62,84 +62,98 @@ export default function Table({
   }, []);
 
   return (
-    <div className={styles.Table}>
-      <div className={styles.TableHeader}>
-        <div className={styles.TableHeaderSpacer}></div>
-        <h1>{title}</h1>
-        <div className={styles.TableHeaderSpacer} onClick={onShowSidecar}>
-          <Gear />
+    <>
+      <div className={styles.TableTopBar}></div>
+      <div className={styles.Table}>
+        <div className={cx(styles.TableHeader)}>
+          <div className={styles.TableHeaderSpacer}></div>
+          <h1>{title}</h1>
+          <div className={styles.TableHeaderSpacer} onClick={onShowSidecar}>
+            <Gear />
+          </div>
+        </div>
+        <div className={styles.TableBody}>
+          <div className={cx(styles.TableColumnHeader, styles.uSticky)}>
+            <RowIdx />
+            <div className={styles.TableRowInner}>
+              {tableSchema.map((field) => {
+                return <ColumnHeader key={field.fieldId} field={field} />;
+              })}
+            </div>
+          </div>
+          <div>
+            <DragDropContext
+              onDragEnd={(result) => {
+                if (!result.destination) {
+                  return;
+                }
+                if (result.destination.index === result.source.index) {
+                  return;
+                }
+                const copyOfRowIds = [...rowIdsOrdered];
+                const rowIdToMove = copyOfRowIds[result.source.index];
+                copyOfRowIds.splice(
+                  result.destination.index,
+                  0,
+                  copyOfRowIds.splice(result.source.index, 1)[0]
+                );
+                const beforeRowId =
+                  copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) - 1] ?? null;
+                const afterRowId =
+                  copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) + 1] ?? null;
+                setRowIdsOrdered(copyOfRowIds);
+                onRowReorder({ rowId: rowIdToMove, afterRowId, beforeRowId });
+              }}
+            >
+              <Droppable droppableId="droppable">
+                {(provided, snapshot) => (
+                  <>
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      {rowIdsOrdered.map((rowId, idx) => {
+                        return (
+                          rowById[rowId] && (
+                            <Draggable
+                              key={rowId}
+                              draggableId={rowId}
+                              index={idx}
+                            >
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  style={getItemStyle(
+                                    snapshot.isDragging,
+                                    provided.draggableProps.style
+                                  )}
+                                >
+                                  <TableRow
+                                    rowIdx={idx + 1}
+                                    tableSchema={tableSchema}
+                                    row={rowById[rowId]}
+                                    validationSchema={validationSchema}
+                                    dragHandleProps={provided.dragHandleProps}
+                                    onEdit={onRowEditInner}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          )
+                        );
+                      })}
+                      <TableAddRow
+                        tableSchema={tableSchema}
+                        onAdd={onAppendRow}
+                      />
+                    </div>
+                    {provided.placeholder}
+                  </>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </div>
         </div>
       </div>
-      <div className={styles.TableColumnHeader}>
-        <RowIdx />
-        {tableSchema.map((field) => {
-          return <ColumnHeader key={field.fieldId} field={field} />;
-        })}
-      </div>
-      <div>
-        <DragDropContext
-          onDragEnd={(result) => {
-            if (!result.destination) {
-              return;
-            }
-            if (result.destination.index === result.source.index) {
-              return;
-            }
-            const copyOfRowIds = [...rowIdsOrdered];
-            const rowIdToMove = copyOfRowIds[result.source.index];
-            copyOfRowIds.splice(
-              result.destination.index,
-              0,
-              copyOfRowIds.splice(result.source.index, 1)[0]
-            );
-            const beforeRowId =
-              copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) - 1] ?? null;
-            const afterRowId =
-              copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) + 1] ?? null;
-            setRowIdsOrdered(copyOfRowIds);
-            onRowReorder({ rowId: rowIdToMove, afterRowId, beforeRowId });
-          }}
-        >
-          <Droppable droppableId="droppable">
-            {(provided, snapshot) => (
-              <>
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {rowIdsOrdered.map((rowId, idx) => {
-                    return (
-                      rowById[rowId] && (
-                        <Draggable key={rowId} draggableId={rowId} index={idx}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              style={getItemStyle(
-                                snapshot.isDragging,
-                                provided.draggableProps.style
-                              )}
-                            >
-                              <TableRow
-                                rowIdx={idx + 1}
-                                tableSchema={tableSchema}
-                                row={rowById[rowId]}
-                                validationSchema={validationSchema}
-                                dragHandleProps={provided.dragHandleProps}
-                                onEdit={onRowEditInner}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      )
-                    );
-                  })}
-                  <TableAddRow tableSchema={tableSchema} onAdd={onAppendRow} />
-                </div>
-                {provided.placeholder}
-              </>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -156,6 +170,7 @@ function CellBox({
     <div
       className={cx(styles.CellBox, isError && styles.CellBoxError)}
       style={{
+        flex: `1 1 auto`,
         width: widthForFieldType(field.fieldType, true),
       }}
     >
@@ -168,8 +183,23 @@ function ColumnHeader({ field }: { field: TableField }) {
   return <CellBox field={field}>{field.fieldName}</CellBox>;
 }
 
-function RowIdx({ idx }: { idx?: number }) {
-  return <div className={styles.RowIdx}>{idx ?? ""}</div>;
+function RowIdx({
+  idx,
+  dragHandleProps = {},
+}: {
+  idx?: number;
+  dragHandleProps?: any;
+}) {
+  return (
+    <div
+      {...dragHandleProps}
+      // Don't allow keyboard to TAB into the index
+      tabIndex={-1}
+      className={styles.RowIdx}
+    >
+      {idx ?? ""}
+    </div>
+  );
 }
 
 function TableRow({
@@ -189,14 +219,7 @@ function TableRow({
 }) {
   return (
     <div className={styles.TableRow}>
-      <div
-        {...dragHandleProps}
-        style={{ padding: "10px 0" }}
-        // Don't allow keyboard to TAB into the index
-        tabIndex={-1}
-      >
-        <RowIdx idx={rowIdx} />
-      </div>
+      <RowIdx idx={rowIdx} dragHandleProps={dragHandleProps} />
       <TableRowFormMemo
         row={row}
         validationSchema={validationSchema}
@@ -261,7 +284,7 @@ function TableRowForm({
     >
       {(formik) => {
         return (
-          <Form onSubmit={formik.handleSubmit}>
+          <Form onSubmit={formik.handleSubmit} className={styles.TableRowForm}>
             <AutoSubmitter
               formik={formik}
               onAutoSubmit={(v) => onEdit(row, v)}
@@ -270,7 +293,6 @@ function TableRowForm({
               {tableSchema.map((field, idx) => {
                 return (
                   <TableCell
-                    autoFocus={idx === 0}
                     key={field.fieldId}
                     field={field}
                     value={row.rowData[field.fieldId]}

@@ -6,7 +6,7 @@ import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
 import TableNameEditor from "./TableNameEditor";
 import Table from "./Table";
-import Sidecar from "./Sidecar";
+import { Sidecar, SidecarOverlay } from "./Sidecar";
 
 import {
   TRow,
@@ -197,27 +197,30 @@ function AppPage({ route }: { route: AppRoute }) {
             }}
           />
           {showSidecar && (
-            <Sidecar>
-              <SchemaEditor
-                initialValues={{ fields: tableSchema }}
-                onSubmit={(v, closeIframe) => {
-                  if (widgetPayload) {
-                    const payload: IFrameToWidgetMessage = {
-                      type: "UPDATE_SCHEMA",
-                      closeIframe,
-                      fields: v.fields,
-                    };
-                    parent?.postMessage({ pluginMessage: payload }, "*");
-                  } else {
-                    console.log({ schema: v, closeIframe });
-                  }
-                  setTableSchema(v.fields);
-                  if (closeIframe) {
-                    setShowSidecar(false);
-                  }
-                }}
-              />
-            </Sidecar>
+            <>
+              <SidecarOverlay onClick={() => setShowSidecar(false)} />
+              <Sidecar>
+                <SchemaEditor
+                  initialValues={{ fields: tableSchema }}
+                  onSubmit={(v, closeIframe) => {
+                    if (widgetPayload) {
+                      const payload: IFrameToWidgetMessage = {
+                        type: "UPDATE_SCHEMA",
+                        closeIframe,
+                        fields: v.fields,
+                      };
+                      parent?.postMessage({ pluginMessage: payload }, "*");
+                    } else {
+                      console.log({ schema: v, closeIframe });
+                    }
+                    setTableSchema(v.fields);
+                    if (closeIframe) {
+                      setShowSidecar(false);
+                    }
+                  }}
+                />
+              </Sidecar>
+            </>
           )}
         </>
       );
