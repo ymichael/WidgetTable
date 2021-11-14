@@ -1,0 +1,11 @@
+.Sidecar {
+  position: fixed;
+  height: 100vh;
+  overflow: scroll;
+  width: 500px;
+  right: 0;
+  top: 0;
+  background-color: #fff;
+  border-left: solid 1px #eee;
+  box-shadow: -1px 0px 0px 0px rgba(238, 238, 238, 0.3);
+}

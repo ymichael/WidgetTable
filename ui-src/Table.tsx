@@ -27,12 +27,14 @@ export default function Table({
   onRowEdit,
   onAppendRow,
   onRowReorder,
+  onShowSidecar,
 }: {
   title: string;
   tableSchema: TableField[];
   rows: TRow[];
   onRowEdit: (rowId: TRow["rowId"], v: TRow["rowData"]) => void;
   onAppendRow: () => TRow["rowId"];
+  onShowSidecar: () => void;
   onRowReorder: (args: {
     rowId: TRow["rowId"];
     beforeRowId: TRow["rowId"] | null;
@@ -63,8 +65,8 @@ export default function Table({
     <div className={styles.Table}>
       <div className={styles.TableHeader}>
         <div className={styles.TableHeaderSpacer}></div>
-        {title}
-        <div className={styles.TableHeaderSpacer}>
+        <h1>{title}</h1>
+        <div className={styles.TableHeaderSpacer} onClick={onShowSidecar}>
           <Gear />
         </div>
       </div>

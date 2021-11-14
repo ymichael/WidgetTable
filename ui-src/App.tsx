@@ -6,6 +6,7 @@ import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
 import TableNameEditor from "./TableNameEditor";
 import Table from "./Table";
+import Sidecar from "./Sidecar";
 
 import {
   TRow,
@@ -24,6 +25,11 @@ function AppPage({ route }: { route: AppRoute }) {
   const [rows, setRows] = useState<TRow[]>(
     route.type === RouteType.FULL_TABLE ? route.rows : []
   );
+  const [tableSchema, setTableSchema] = useState<TableFields[]>(
+    route.tableSchema
+  );
+  const [showSidecar, setShowSidecar] = useState<boolean>(false);
+
   useEffect(() => {
     if (!widgetPayload) {
       return;
@@ -55,7 +61,7 @@ function AppPage({ route }: { route: AppRoute }) {
     case RouteType.SCHEMA_EDITOR:
       return (
         <SchemaEditor
-          initialValues={{ fields: route.tableSchema }}
+          initialValues={{ fields: tableSchema }}
           onSubmit={(v, closeIframe) => {
             if (widgetPayload) {
               const payload: IFrameToWidgetMessage = {
@@ -73,7 +79,7 @@ function AppPage({ route }: { route: AppRoute }) {
     case RouteType.ROW_EDITOR:
       return (
         <RowEditor
-          tableSchema={route.tableSchema}
+          tableSchema={tableSchema}
           initialValues={route.isEdit ? route.row.rowData : {}}
           isEdit={route.isEdit}
           onEdit={(v, closeIframe) => {
@@ -138,55 +144,81 @@ function AppPage({ route }: { route: AppRoute }) {
       );
     case RouteType.FULL_TABLE:
       return (
-        <Table
-          title={route.title}
-          tableSchema={route.tableSchema}
-          rows={rows}
-          onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
-            if (widgetPayload) {
-              const payload: IFrameToWidgetMessage = {
-                type: "REORDER_ROW",
-                rowId,
-                afterRowId,
-                beforeRowId,
-              };
-              parent?.postMessage({ pluginMessage: payload }, "*");
-            } else {
-              console.log({ rowId: rowId, afterRowId, beforeRowId });
-            }
-          }}
-          onAppendRow={() => {
-            const newRowId = fractionalIndex(
-              rows[rows.length - 1].rowId || "a0",
-              null
-            );
-            setRows([...rows, { rowId: newRowId, rowData: {} }]);
-            if (!!widgetPayload) {
-              const payload: IFrameToWidgetMessage = {
-                type: "UPSERT_ROW",
-                closeIframe: false,
-                row: { rowId: newRowId, rowData: {} },
-              };
-              parent?.postMessage({ pluginMessage: payload }, "*");
-            }
-            return newRowId;
-          }}
-          onRowEdit={(rowId, v) => {
-            if (widgetPayload) {
-              const payload: IFrameToWidgetMessage = {
-                type: "UPSERT_ROW",
-                closeIframe: false,
-                row: {
+        <>
+          <Table
+            title={route.title}
+            tableSchema={tableSchema}
+            rows={rows}
+            onShowSidecar={() => setShowSidecar(true)}
+            onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
+              if (widgetPayload) {
+                const payload: IFrameToWidgetMessage = {
+                  type: "REORDER_ROW",
                   rowId,
-                  rowData: v,
-                },
-              };
-              parent?.postMessage({ pluginMessage: payload }, "*");
-            } else {
-              console.log({ onRowEdit: v });
-            }
-          }}
-        />
+                  afterRowId,
+                  beforeRowId,
+                };
+                parent?.postMessage({ pluginMessage: payload }, "*");
+              } else {
+                console.log({ rowId: rowId, afterRowId, beforeRowId });
+              }
+            }}
+            onAppendRow={() => {
+              const newRowId = fractionalIndex(
+                rows[rows.length - 1].rowId || "a0",
+                null
+              );
+              setRows([...rows, { rowId: newRowId, rowData: {} }]);
+              if (!!widgetPayload) {
+                const payload: IFrameToWidgetMessage = {
+                  type: "UPSERT_ROW",
+                  closeIframe: false,
+                  row: { rowId: newRowId, rowData: {} },
+                };
+                parent?.postMessage({ pluginMessage: payload }, "*");
+              }
+              return newRowId;
+            }}
+            onRowEdit={(rowId, v) => {
+              if (widgetPayload) {
+                const payload: IFrameToWidgetMessage = {
+                  type: "UPSERT_ROW",
+                  closeIframe: false,
+                  row: {
+                    rowId,
+                    rowData: v,
+                  },
+                };
+                parent?.postMessage({ pluginMessage: payload }, "*");
+              } else {
+                console.log({ onRowEdit: v });
+              }
+            }}
+          />
+          {showSidecar && (
+            <Sidecar>
+              <SchemaEditor
+                initialValues={{ fields: tableSchema }}
+                onSubmit={(v, closeIframe) => {
+                  if (widgetPayload) {
+                    const payload: IFrameToWidgetMessage = {
+                      type: "UPDATE_SCHEMA",
+                      closeIframe,
+                      fields: v.fields,
+                    };
+                    parent?.postMessage({ pluginMessage: payload }, "*");
+                  } else {
+                    console.log({ schema: v, closeIframe });
+                  }
+                  setTableSchema(v.fields);
+                  if (closeIframe) {
+                    setShowSidecar(false);
+                  }
+                }}
+              />
+            </Sidecar>
+          )}
+        </>
       );
     default:
       assertUnreachable(route);
