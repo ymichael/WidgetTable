@@ -10,6 +10,7 @@ import Sidecar from "./Sidecar";
 
 import {
   TRow,
+  TableField,
   WidgetToIFrameShowUIMessage,
   WidgetToIFramePostMessage,
   IFrameToWidgetMessage,
@@ -25,7 +26,7 @@ function AppPage({ route }: { route: AppRoute }) {
   const [rows, setRows] = useState<TRow[]>(
     route.type === RouteType.FULL_TABLE ? route.rows : []
   );
-  const [tableSchema, setTableSchema] = useState<TableFields[]>(
+  const [tableSchema, setTableSchema] = useState<TableField[]>(
     route.tableSchema
   );
   const [showSidecar, setShowSidecar] = useState<boolean>(false);

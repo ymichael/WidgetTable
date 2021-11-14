@@ -26,6 +26,7 @@ export type AppRoute =
     }
   | {
       type: RouteType.TITLE_EDITOR;
+      tableSchema: TableField[];
       title: string;
     }
   | {
@@ -70,6 +71,7 @@ export function getAppRoute(): AppRoute {
         return {
           type: RouteType.TITLE_EDITOR,
           title: widgetPayload.name,
+          tableSchema: [],
         };
     }
   } else {
@@ -89,6 +91,7 @@ export function getAppRoute(): AppRoute {
     if (/title=1/.test(window.location.search)) {
       return {
         type: RouteType.TITLE_EDITOR,
+        tableSchema: TEST_TABLE_SCHEMA,
         title: "Test Table",
       };
     }
