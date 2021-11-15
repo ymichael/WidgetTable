@@ -30,6 +30,7 @@
 
 .TableBody {
   display: table;
+  min-width: 100%;
 }
 
 .TableHeaderSpacer {
