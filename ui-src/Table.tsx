@@ -24,6 +24,7 @@ export default function Table({
   title,
   tableSchema,
   rows,
+  onEditTitle,
   onRowEdit,
   onAppendRow,
   onRowReorder,
@@ -35,6 +36,7 @@ export default function Table({
   onRowEdit: (rowId: TRow["rowId"], v: TRow["rowData"]) => void;
   onAppendRow: () => TRow["rowId"];
   onShowSidecar: () => void;
+  onEditTitle: (title: string) => void;
   onRowReorder: (args: {
     rowId: TRow["rowId"];
     beforeRowId: TRow["rowId"] | null;
@@ -66,11 +68,10 @@ export default function Table({
       <div className={styles.TableTopBar}></div>
       <div className={styles.Table}>
         <div className={cx(styles.TableHeader)}>
-          <div className={styles.TableHeaderSpacer}></div>
-          <h1>{title}</h1>
-          <div className={styles.TableHeaderSpacer} onClick={onShowSidecar}>
+          <div className={styles.TableSettings} onClick={onShowSidecar}>
             <Gear />
           </div>
+          <TableTitle title={title} onEditTitle={onEditTitle} />
         </div>
         <div className={styles.TableBody}>
           <div className={cx(styles.TableColumnHeader, styles.uSticky)}>
@@ -154,6 +155,27 @@ export default function Table({
         </div>
       </div>
     </>
+  );
+}
+
+function TableTitle({
+  title,
+  onEditTitle,
+}: {
+  title: string;
+  onEditTitle: (title: string) => void;
+}) {
+  return (
+    <div className={styles.TableTitle}>
+      <input
+        type="text"
+        value={title}
+        autoComplete="off"
+        onChange={(e) => {
+          onEditTitle(e.target.value);
+        }}
+      />
+    </div>
   );
 }
 

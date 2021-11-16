@@ -16,7 +16,7 @@ export default class AutoSubmitter extends React.Component<AutoSubmitterProps> {
 
   constructor(props: AutoSubmitterProps) {
     super(props);
-    this.lastSubmittedValues = null;
+    this.lastSubmittedValues = props.formik.values || null;
   }
 
   componentDidUpdate = debounce(

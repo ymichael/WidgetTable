@@ -65,8 +65,8 @@ function getInitialHeightForPayload(
   switch (payload.type) {
     case "EDIT_SCHEMA":
       return 600;
-    case "RENAME_TABLE":
-      return 200;
+    case "FULL_TABLE":
+      return 800;
     default:
       return 308;
   }
@@ -415,6 +415,7 @@ function Table() {
       if (propertyName === "editSchema") {
         return showUIWithPayload({
           type: "EDIT_SCHEMA",
+          title: syncedTable.getTitle(),
           fields: tableSchema,
         });
       } else if (propertyName === "editTable") {
@@ -425,11 +426,12 @@ function Table() {
             rowId: rowKey,
             rowData: row,
           })),
-          name: syncedTable.getTitle(),
+          title: syncedTable.getTitle(),
         });
       } else if (propertyName === "newRow") {
         return showUIWithPayload({
           type: "NEW_ROW",
+          title: syncedTable.getTitle(),
           fields: tableSchema,
         });
       } else if (propertyName === "deleteAllRows") {
@@ -454,6 +456,7 @@ function Table() {
               syncedTable.setSchema(DEFAULT_SCHEMA);
               return showUIWithPayload({
                 type: "EDIT_SCHEMA",
+                title: syncedTable.getTitle(),
                 fields: DEFAULT_SCHEMA,
               });
             }}
@@ -500,8 +503,12 @@ function Table() {
           fill="#FFF"
           onClick={() => {
             return showUIWithPayload({
-              type: "RENAME_TABLE",
-              name: syncedTable.getTitle(),
+              type: "FULL_TABLE",
+              title: syncedTable.getTitle(),
+              rows: syncedTable.getRows().map(([rowKey, row]) => ({
+                rowId: rowKey,
+                rowData: row,
+              })),
               fields: tableSchema,
             });
           }}
@@ -532,6 +539,7 @@ function Table() {
           const onEditRow = () => {
             return showUIWithPayload({
               type: "EDIT_ROW",
+              title: syncedTable.getTitle(),
               fields: tableSchema,
               row: {
                 rowId: rowKey,
@@ -562,6 +570,7 @@ function Table() {
         onClick={() => {
           return showUIWithPayload({
             type: "NEW_ROW",
+            title: syncedTable.getTitle(),
             fields: tableSchema,
           });
         }}

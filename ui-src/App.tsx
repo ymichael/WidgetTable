@@ -26,6 +26,7 @@ function AppPage({ route }: { route: AppRoute }) {
   const [rows, setRows] = useState<TRow[]>(
     route.type === RouteType.FULL_TABLE ? route.rows : []
   );
+  const [title, setTitle] = useState<string>(route.title);
   const [tableSchema, setTableSchema] = useState<TableField[]>(
     route.tableSchema
   );
@@ -128,7 +129,7 @@ function AppPage({ route }: { route: AppRoute }) {
     case RouteType.TITLE_EDITOR:
       return (
         <TableNameEditor
-          name={route.title}
+          name={title}
           onSubmit={({ name }, closeIframe) => {
             if (!!widgetPayload) {
               const payload: IFrameToWidgetMessage = {
@@ -138,6 +139,7 @@ function AppPage({ route }: { route: AppRoute }) {
               };
               parent?.postMessage({ pluginMessage: payload }, "*");
             } else {
+              setTitle(name);
               console.log({ name, closeIframe });
             }
           }}
@@ -147,9 +149,22 @@ function AppPage({ route }: { route: AppRoute }) {
       return (
         <>
           <Table
-            title={route.title}
+            title={title}
             tableSchema={tableSchema}
             rows={rows}
+            onEditTitle={(name) => {
+              if (!!widgetPayload) {
+                const payload: IFrameToWidgetMessage = {
+                  type: "RENAME_TABLE",
+                  closeIframe: false,
+                  name,
+                };
+                parent?.postMessage({ pluginMessage: payload }, "*");
+              } else {
+                setTitle(name);
+                console.log({ name });
+              }
+            }}
             onShowSidecar={() => setShowSidecar(true)}
             onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
               if (widgetPayload) {

@@ -54,13 +54,15 @@ export type WidgetToIFramePostMessage = {
   };
 };
 
-export type WidgetToIFrameShowUIMessage = { fields: TableField[] } & (
+export type WidgetToIFrameShowUIMessage = {
+  fields: TableField[];
+  title: string;
+} & (
   | {
       type: "EDIT_SCHEMA";
     }
   | {
       type: "FULL_TABLE";
-      name: string;
       rows: TRow[];
     }
   | {
@@ -69,10 +71,6 @@ export type WidgetToIFrameShowUIMessage = { fields: TableField[] } & (
   | {
       type: "EDIT_ROW";
       row: TRow;
-    }
-  | {
-      type: "RENAME_TABLE";
-      name: string;
     }
 );
 

@@ -1,4 +1,4 @@
-import { Table, FieldType } from "../shared/types";
+import { TRow, Table, FieldType } from "../shared/types";
 import fractionalIndex from "../shared/fractional-indexing";
 
 export const FIELD_TYPE_READABLE: Record<FieldType, string> = {
@@ -77,17 +77,24 @@ const range = (idx: number) => {
   return ret;
 };
 
-export const TEST_TABLE_ROWS = range(50).map((idx) => {
-  const rowId = fractionalIndex(prevId, null);
-  prevId = rowId;
-  return {
-    rowId,
-    rowData: {
-      title: `This is a title ${idx}`,
-      desc: `This is a description ${idx}`,
-      ied: Math.max(idx % 3 || 0.5),
-      priority: "P1",
-      published: idx % 2 == 0,
-    },
-  };
-});
+let _testTableRows: TRow[];
+
+export const testTableRows = () => {
+  if (!_testTableRows) {
+    _testTableRows = range(50).map((idx) => {
+      const rowId = fractionalIndex(prevId, null);
+      prevId = rowId;
+      return {
+        rowId,
+        rowData: {
+          title: `This is a title ${idx}`,
+          desc: `This is a description ${idx}`,
+          ied: Math.max(idx % 3 || 0.5),
+          priority: "P1",
+          published: idx % 2 == 0,
+        },
+      };
+    });
+  }
+  return _testTableRows;
+};

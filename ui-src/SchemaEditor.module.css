@@ -1,11 +1,30 @@
 .SchemaEditor {
-  border-top: solid 2px rgba(168, 63, 251, 0.4);
-  padding: 10px;
-  padding-top: 0;
 }
-.SchemaEditor h1 {
-  padding: 5px;
+
+.SchemaEditorHeader {
+  border-top: solid 2px rgba(168, 63, 251, 0.4);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  top: 0;
+  position: sticky;
+  background-color: #fff;
+  border-bottom: solid 1px hsl(0, 0%, 80%);
+  margin-bottom: 15px;
+  z-index: 10;
+}
+
+.SchemaEditorHeader h1 {
+  padding: 0;
+  margin: 0;
   font-size: 18px;
+}
+
+.SchemaEditorBody {
+  padding: 15px;
+  padding-top: 0;
 }
 
 .SchemaFieldForm {

@@ -4,10 +4,11 @@ import { Formik, Form, Field, FieldArray } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FieldType, Table } from "../shared/types";
 import { FIELD_TYPE_READABLE, FIELD_TYPE_DESCRIPTION } from "./constants";
-import { FieldRow, FieldRowSplit, Button, ButtonRow } from "./FieldRow";
+import { FieldRow, FieldRowSplit, Button } from "./FieldRow";
 import AutoSubmitter from "./AutoSubmitter";
 import CustomSelect from "./input/CustomSelect";
 import CustomMultiSelectTextInput from "./input/CustomMultiSelectTextInput";
+import CloseIcon from "./icons/Close";
 import styles from "./SchemaEditor.module.css";
 
 const fieldSchema = yup.object().shape({
@@ -76,18 +77,8 @@ export default function SchemaEditor({
         {(formik) => {
           const fieldsError = formik.errors?.fields || "";
           return (
-            <Form onSubmit={formik.handleSubmit}>
-              <AutoSubmitter
-                formik={formik}
-                onAutoSubmit={(v) => onSubmit(v, false)}
-              />
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
+            <>
+              <div className={styles.SchemaEditorHeader}>
                 <h1>Table Schema</h1>
                 {fieldsError && typeof fieldsError === "string" && (
                   <>
@@ -95,100 +86,114 @@ export default function SchemaEditor({
                     <div className={styles.SubmitError}>{fieldsError}</div>
                   </>
                 )}
-                <ButtonRow>
-                  <button type="submit" disabled={!formik.isValid}>
-                    Done
-                  </button>
-                </ButtonRow>
+                <div
+                  onClick={() => {
+                    if (formik.isValid) {
+                      onSubmit(formik.values, true);
+                    }
+                  }}
+                >
+                  <CloseIcon />
+                </div>
               </div>
-              <FieldArray
-                name="fields"
-                render={(arrayHelpers) => {
-                  return (
-                    <DragDropContext
-                      onDragEnd={(result) => {
-                        if (!result.destination) {
-                          return;
-                        }
-                        arrayHelpers.move(
-                          result.source.index,
-                          result.destination.index
-                        );
-                      }}
-                    >
-                      <Droppable droppableId="droppable">
-                        {(provided, snapshot) => (
-                          <>
-                            <div
-                              {...provided.droppableProps}
-                              ref={provided.innerRef}
-                            >
-                              {formik.values.fields.map((field, idx) => {
-                                return (
-                                  <Draggable
-                                    key={idx}
-                                    draggableId={`${idx}`}
-                                    index={idx}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        style={getItemStyle(
-                                          snapshot.isDragging,
-                                          provided.draggableProps.style
-                                        )}
+              <div className={styles.SchemaEditorBody}>
+                <Form onSubmit={formik.handleSubmit}>
+                  <AutoSubmitter
+                    formik={formik}
+                    onAutoSubmit={(v) => onSubmit(v, false)}
+                  />
+                  <FieldArray
+                    name="fields"
+                    render={(arrayHelpers) => {
+                      return (
+                        <DragDropContext
+                          onDragEnd={(result) => {
+                            if (!result.destination) {
+                              return;
+                            }
+                            arrayHelpers.move(
+                              result.source.index,
+                              result.destination.index
+                            );
+                          }}
+                        >
+                          <Droppable droppableId="droppable">
+                            {(provided, snapshot) => (
+                              <>
+                                <div
+                                  {...provided.droppableProps}
+                                  ref={provided.innerRef}
+                                >
+                                  {formik.values.fields.map((field, idx) => {
+                                    return (
+                                      <Draggable
+                                        key={idx}
+                                        draggableId={`${idx}`}
+                                        index={idx}
                                       >
-                                        <SchemaFieldForm
-                                          isRemovable={
-                                            formik.values.fields.length > 1
-                                          }
-                                          onRemove={() => {
-                                            arrayHelpers.remove(idx);
-                                          }}
-                                          setFieldValue={formik.setFieldValue}
-                                          fieldIdx={idx}
-                                          values={field}
-                                        />
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                );
-                              })}
-                            </div>
-                            {provided.placeholder}
-                          </>
-                        )}
-                      </Droppable>
+                                        {(provided, snapshot) => (
+                                          <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            style={getItemStyle(
+                                              snapshot.isDragging,
+                                              provided.draggableProps.style
+                                            )}
+                                          >
+                                            <SchemaFieldForm
+                                              isRemovable={
+                                                formik.values.fields.length > 1
+                                              }
+                                              onRemove={() => {
+                                                arrayHelpers.remove(idx);
+                                              }}
+                                              setFieldValue={
+                                                formik.setFieldValue
+                                              }
+                                              fieldIdx={idx}
+                                              values={field}
+                                            />
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                    );
+                                  })}
+                                </div>
+                                {provided.placeholder}
+                              </>
+                            )}
+                          </Droppable>
 
-                      <button
-                        type="button"
-                        className={styles.NewFieldButton}
-                        onClick={() => {
-                          arrayHelpers.push({
-                            fieldName: "",
-                            fieldType: FieldType.TEXT_SINGLE_LINE,
-                            fieldOptions: [],
-                          });
-                        }}
-                      >
-                        New Field
-                      </button>
-                      <Button
-                        type="submit"
-                        disabled={!formik.isValid}
-                        style={{
-                          width: "100%",
-                        }}
-                      >
-                        Done
-                      </Button>
-                    </DragDropContext>
-                  );
-                }}
-              />
-            </Form>
+                          <button
+                            type="button"
+                            className={styles.NewFieldButton}
+                            onClick={() => {
+                              arrayHelpers.push({
+                                fieldName: "",
+                                fieldType: FieldType.TEXT_SINGLE_LINE,
+                                fieldOptions: [],
+                              });
+                            }}
+                          >
+                            New Field
+                          </button>
+                          <Button
+                            type="submit"
+                            disabled={!formik.isValid}
+                            style={{
+                              width: "100%",
+                            }}
+                          >
+                            Done
+                          </Button>
+                        </DragDropContext>
+                      );
+                    }}
+                  />
+                </Form>
+              </div>
+            </>
           );
         }}
       </Formik>
