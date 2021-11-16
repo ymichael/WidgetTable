@@ -4,40 +4,27 @@ import { TEST_TABLE_SCHEMA, testTableRows } from "./constants";
 export enum RouteType {
   SCHEMA_EDITOR,
   ROW_EDITOR,
-  TITLE_EDITOR,
   FULL_TABLE,
 }
 
-export type AppRoute =
+export type AppRoute = { title: string; tableSchema: TableField[] } & (
   | {
       type: RouteType.SCHEMA_EDITOR;
-      title: string;
-      tableSchema: TableField[];
     }
   | {
       type: RouteType.ROW_EDITOR;
-      title: string;
       isEdit: true;
-      tableSchema: TableField[];
       row: TRow;
     }
   | {
       type: RouteType.ROW_EDITOR;
-      title: string;
       isEdit: false;
-      tableSchema: TableField[];
-    }
-  | {
-      type: RouteType.TITLE_EDITOR;
-      title: string;
-      tableSchema: TableField[];
     }
   | {
       type: RouteType.FULL_TABLE;
-      title: string;
-      tableSchema: TableField[];
       rows: TRow[];
-    };
+    }
+);
 
 const widgetPayload: WidgetToIFrameShowUIMessage | undefined = (window as any)
   .widgetPayload;
@@ -88,13 +75,6 @@ export function getAppRoute(): AppRoute {
         tableSchema: TEST_TABLE_SCHEMA,
         title: "Test Table",
         isEdit: false,
-      };
-    }
-    if (/title=1/.test(window.location.search)) {
-      return {
-        type: RouteType.TITLE_EDITOR,
-        tableSchema: TEST_TABLE_SCHEMA,
-        title: "Test Table",
       };
     }
   }

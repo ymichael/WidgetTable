@@ -20,6 +20,10 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
   };
 };
 
+function shouldSkipField(field: TableField): boolean {
+  return field.fieldType === FieldType.VOTE;
+}
+
 export default function Table({
   title,
   tableSchema,
@@ -78,6 +82,9 @@ export default function Table({
             <RowIdx />
             <div className={styles.TableRowInner}>
               {tableSchema.map((field) => {
+                if (shouldSkipField(field)) {
+                  return null;
+                }
                 return <ColumnHeader key={field.fieldId} field={field} />;
               })}
             </div>
@@ -264,6 +271,8 @@ function TableAddRow({
       <RowIdx />
       <div className={styles.TableRowInner}>
         {tableSchema.map((field) => {
+          if (shouldSkipField(field)) {
+          }
           return (
             <CellBox key={field.fieldId} field={field}>
               <textarea
@@ -313,6 +322,9 @@ function TableRowForm({
             />
             <div className={styles.TableRowInner}>
               {tableSchema.map((field, idx) => {
+                if (shouldSkipField(field)) {
+                  return null;
+                }
                 return (
                   <TableCell
                     key={field.fieldId}

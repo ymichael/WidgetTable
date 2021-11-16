@@ -35,7 +35,7 @@ const {
 
 const SPACING_VERTICAL = 15;
 const SPACING_HORIZONTAL = 20;
-const IFRAME_WIDTH = 500;
+const IFRAME_WIDTH = 800;
 
 function isSticky(node: SceneNode): node is StickyNode {
   return node.type === "STICKY";

@@ -4,7 +4,6 @@ import styles from "./App.module.css";
 
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
-import TableNameEditor from "./TableNameEditor";
 import Table from "./Table";
 import { Sidecar, SidecarOverlay } from "./Sidecar";
 
@@ -126,25 +125,6 @@ function AppPage({ route }: { route: AppRoute }) {
           }}
         />
       );
-    case RouteType.TITLE_EDITOR:
-      return (
-        <TableNameEditor
-          name={title}
-          onSubmit={({ name }, closeIframe) => {
-            if (!!widgetPayload) {
-              const payload: IFrameToWidgetMessage = {
-                type: "RENAME_TABLE",
-                closeIframe,
-                name,
-              };
-              parent?.postMessage({ pluginMessage: payload }, "*");
-            } else {
-              setTitle(name);
-              console.log({ name, closeIframe });
-            }
-          }}
-        />
-      );
     case RouteType.FULL_TABLE:
       return (
         <>
@@ -153,6 +133,7 @@ function AppPage({ route }: { route: AppRoute }) {
             tableSchema={tableSchema}
             rows={rows}
             onEditTitle={(name) => {
+              setTitle(name);
               if (!!widgetPayload) {
                 const payload: IFrameToWidgetMessage = {
                   type: "RENAME_TABLE",
@@ -161,7 +142,6 @@ function AppPage({ route }: { route: AppRoute }) {
                 };
                 parent?.postMessage({ pluginMessage: payload }, "*");
               } else {
-                setTitle(name);
                 console.log({ name });
               }
             }}

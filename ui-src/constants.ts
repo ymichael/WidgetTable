@@ -58,7 +58,7 @@ export const TEST_TABLE_SCHEMA: Table["fields"] = [
   {
     fieldId: "email",
     fieldName: "Email",
-    fieldType: FieldType.EMAIL,
+    fieldType: FieldType.VOTE,
   },
   {
     fieldId: "published",
