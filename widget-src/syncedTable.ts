@@ -71,19 +71,11 @@ export default class SyncedTable {
     this.rows.set(rowId, this.sanitizeRow(rowData));
   }
 
-  moveRow(
-    rowId: string,
-    beforeRowId: string | null,
-    afterRowId: string | null
-  ): string | null {
+  moveRow(rowId: string, newRowId: string): string | null {
     const oldRowId = rowId;
     const row = this.rows.get(rowId);
     if (!row) {
       console.error(`Attempting to re-order non-existent rowId: ${rowId}`);
-      return null;
-    }
-    const newRowId = fractionalIndex(beforeRowId, afterRowId);
-    if (oldRowId === newRowId) {
       return null;
     }
 

@@ -1,6 +1,6 @@
 import * as React from "react";
 import cx from "classnames";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 import { Formik, Form, Field, useField } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { TableField, FieldType, TRow } from "../shared/types";
@@ -46,16 +46,11 @@ export default function Table({
   onEditTitle: (title: string) => void;
   onRowReorder: (args: {
     rowId: TRow["rowId"];
+    orderedRowIds: TRow["rowId"][];
     beforeRowId: TRow["rowId"] | null;
     afterRowId: TRow["rowId"] | null;
   }) => void;
 }) {
-  const [rowIdsOrdered, setRowIdsOrdered] = useState<string[]>(
-    rows.map((r) => r.rowId)
-  );
-  useEffect(() => {
-    setRowIdsOrdered(rows.map((r) => r.rowId));
-  }, [rows]);
   const rowById = useMemo(() => {
     const ret: { [key: string]: TRow } = {};
     rows.forEach((r) => {
@@ -102,7 +97,7 @@ export default function Table({
                 if (result.destination.index === result.source.index) {
                   return;
                 }
-                const copyOfRowIds = [...rowIdsOrdered];
+                const copyOfRowIds = rows.map((x) => x.rowId);
                 const rowIdToMove = copyOfRowIds[result.source.index];
                 copyOfRowIds.splice(
                   result.destination.index,
@@ -113,15 +108,19 @@ export default function Table({
                   copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) - 1] ?? null;
                 const afterRowId =
                   copyOfRowIds[copyOfRowIds.indexOf(rowIdToMove) + 1] ?? null;
-                setRowIdsOrdered(copyOfRowIds);
-                onRowReorder({ rowId: rowIdToMove, afterRowId, beforeRowId });
+                onRowReorder({
+                  rowId: rowIdToMove,
+                  afterRowId,
+                  beforeRowId,
+                  orderedRowIds: copyOfRowIds,
+                });
               }}
             >
               <Droppable droppableId="droppable">
                 {(provided, snapshot) => (
                   <>
                     <div {...provided.droppableProps} ref={provided.innerRef}>
-                      {rowIdsOrdered.map((rowId, idx) => {
+                      {rows.map(({ rowId }, idx) => {
                         return (
                           rowById[rowId] && (
                             <Draggable

@@ -93,8 +93,7 @@ export type IFrameToWidgetMessage =
   | {
       type: "REORDER_ROW";
       rowId: TRow["rowId"];
-      afterRowId: TRow["rowId"] | null;
-      beforeRowId: TRow["rowId"] | null;
+      newRowId: TRow["rowId"];
     }
   | {
       type: "NEW_ROW";

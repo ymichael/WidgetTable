@@ -148,6 +148,7 @@ function AppPage({ route }: { route: AppRoute }) {
             }}
             onShowSidecar={() => setShowSidecar(true)}
             onDeleteRow={(rowId) => {
+              setRows(rows.filter((row) => row.rowId !== rowId));
               if (widgetPayload) {
                 const payload: IFrameToWidgetMessage = {
                   type: "DELETE_ROW",
@@ -156,17 +157,37 @@ function AppPage({ route }: { route: AppRoute }) {
                 };
                 parent?.postMessage({ pluginMessage: payload }, "*");
               } else {
-                setRows(rows.filter((row) => row.rowId !== rowId));
                 console.log("onDelete", rowId);
               }
             }}
             onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
+              const newRowId = fractionalIndex(beforeRowId, afterRowId);
+              const modifiedRows = rows.map((r) => {
+                if (r.rowId === rowId) {
+                  return { ...r, rowId: newRowId };
+                }
+                return r;
+              });
+
+              const rowIds = modifiedRows.map((r) => r.rowId);
+              if (beforeRowId) {
+                modifiedRows.splice(
+                  rowIds.indexOf(beforeRowId),
+                  0,
+                  modifiedRows.splice(rowIds.indexOf(newRowId), 1)[0]
+                );
+              } else {
+                modifiedRows.unshift(
+                  modifiedRows.splice(rowIds.indexOf(newRowId), 1)[0]
+                );
+              }
+
+              setRows(modifiedRows);
               if (widgetPayload) {
                 const payload: IFrameToWidgetMessage = {
                   type: "REORDER_ROW",
                   rowId,
-                  afterRowId,
-                  beforeRowId,
+                  newRowId,
                 };
                 parent?.postMessage({ pluginMessage: payload }, "*");
               } else {

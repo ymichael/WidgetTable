@@ -361,21 +361,7 @@ function Table() {
           }
           break;
         case "REORDER_ROW":
-          const newRowId = syncedTable.moveRow(
-            msg.rowId,
-            msg.beforeRowId,
-            msg.afterRowId
-          );
-          if (newRowId) {
-            const message: WidgetToIFramePostMessage = {
-              type: "UPDATE_ROW_ORDER",
-              orderedRowIds: syncedTable.getRowIdsOrdered(),
-              updatedRowIds: {
-                [msg.rowId]: newRowId,
-              },
-            };
-            figma.ui.postMessage(message);
-          }
+          const newRowId = syncedTable.moveRow(msg.rowId, msg.newRowId);
           break;
         case "UPDATE_SCHEMA":
           syncedTable.setSchema(
