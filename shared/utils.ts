@@ -15,17 +15,17 @@ export function widthForFieldType(
   if (isForm) {
     switch (fieldType) {
       case FieldType.TEXT_MULTI_LINE:
-        return 250;
+        return 240;
       case FieldType.NUMBER:
       case FieldType.CHECKBOX:
-        return 80;
+        return 60;
       case FieldType.SELECT_MULTIPLE:
       case FieldType.SELECT_SINGLE:
       case FieldType.VOTE:
       case FieldType.URL:
       case FieldType.EMAIL:
       case FieldType.TEXT_SINGLE_LINE:
-        return 150;
+        return 100;
       default:
         assertUnreachable(fieldType);
     }

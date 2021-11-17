@@ -67,10 +67,10 @@ function getInitialSizeForPayload({
     case "EDIT_SCHEMA":
     case "FULL_TABLE":
       const fieldWidthSum = fields.reduce(
-        (acc, f) => widthForFieldType(f.fieldType) + acc,
+        (acc, f) => widthForFieldType(f.fieldType, true /* isForm */) + acc,
         0
       );
-      return [fieldWidthSum * 2, 600];
+      return [300 + fieldWidthSum, 600];
     default:
       return [400, Math.min(200 + fields.length * 100, 500)];
   }
