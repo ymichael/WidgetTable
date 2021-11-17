@@ -81,7 +81,7 @@ let _testTableRows: TRow[];
 
 export const testTableRows = () => {
   if (!_testTableRows) {
-    _testTableRows = range(50).map((idx) => {
+    _testTableRows = range(5).map((idx) => {
       const rowId = fractionalIndex(prevId, null);
       prevId = rowId;
       return {

@@ -46,7 +46,6 @@ export default function Table({
   onEditTitle: (title: string) => void;
   onRowReorder: (args: {
     rowId: TRow["rowId"];
-    orderedRowIds: TRow["rowId"][];
     beforeRowId: TRow["rowId"] | null;
     afterRowId: TRow["rowId"] | null;
   }) => void;
@@ -112,7 +111,6 @@ export default function Table({
                   rowId: rowIdToMove,
                   afterRowId,
                   beforeRowId,
-                  orderedRowIds: copyOfRowIds,
                 });
               }}
             >

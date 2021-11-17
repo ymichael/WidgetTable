@@ -162,27 +162,25 @@ function AppPage({ route }: { route: AppRoute }) {
             }}
             onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
               const newRowId = fractionalIndex(beforeRowId, afterRowId);
-              const modifiedRows = rows.map((r) => {
+              const rowById: Record<TRow["rowId"], TRow> = {};
+              rows.forEach((r) => {
                 if (r.rowId === rowId) {
-                  return { ...r, rowId: newRowId };
+                  rowById[newRowId] = { ...r, rowId: newRowId };
+                } else {
+                  rowById[r.rowId] = r;
                 }
-                return r;
               });
 
-              const rowIds = modifiedRows.map((r) => r.rowId);
-              if (beforeRowId) {
-                modifiedRows.splice(
-                  rowIds.indexOf(beforeRowId),
-                  0,
-                  modifiedRows.splice(rowIds.indexOf(newRowId), 1)[0]
-                );
+              const rowIds = rows.map((r) =>
+                r.rowId === rowId ? newRowId : r.rowId
+              );
+              rowIds.splice(rowIds.indexOf(newRowId), 1);
+              if (afterRowId) {
+                rowIds.splice(rowIds.indexOf(afterRowId), 0, newRowId);
               } else {
-                modifiedRows.unshift(
-                  modifiedRows.splice(rowIds.indexOf(newRowId), 1)[0]
-                );
+                rowIds.push(newRowId);
               }
-
-              setRows(modifiedRows);
+              setRows(rowIds.map((x) => rowById[x]));
               if (widgetPayload) {
                 const payload: IFrameToWidgetMessage = {
                   type: "REORDER_ROW",
@@ -191,7 +189,12 @@ function AppPage({ route }: { route: AppRoute }) {
                 };
                 parent?.postMessage({ pluginMessage: payload }, "*");
               } else {
-                console.log({ rowId: rowId, afterRowId, beforeRowId });
+                console.log({
+                  rowId: rowId,
+                  newRowId,
+                  afterRowId,
+                  beforeRowId,
+                });
               }
             }}
             onAppendRow={() => {
