@@ -59,22 +59,27 @@ function importStickies(
   });
 }
 
-function getInitialHeightForPayload(
-  payload: WidgetToIFrameShowUIMessage
-): number {
-  switch (payload.type) {
+function getInitialSizeForPayload({
+  type,
+  fields,
+}: WidgetToIFrameShowUIMessage): [number, number] {
+  switch (type) {
     case "EDIT_SCHEMA":
-      return 600;
     case "FULL_TABLE":
-      return 800;
+      const fieldWidthSum = fields.reduce(
+        (acc, f) => widthForFieldType(f.fieldType) + acc,
+        0
+      );
+      return [fieldWidthSum * 2, 600];
     default:
-      return 308;
+      return [400, Math.min(200 + fields.length * 100, 500)];
   }
 }
 
 const showUIWithPayload = (
   payload: WidgetToIFrameShowUIMessage
 ): Promise<void> => {
+  const [width, height] = getInitialSizeForPayload(payload);
   return new Promise(() => {
     figma.showUI(
       `<script>
@@ -83,8 +88,8 @@ const showUIWithPayload = (
         ${__html__}
       `,
       {
-        width: IFRAME_WIDTH,
-        height: getInitialHeightForPayload(payload),
+        width,
+        height,
       }
     );
   });
