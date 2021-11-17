@@ -95,6 +95,58 @@ const showUIWithPayload = (
   });
 };
 
+const genIFrameToWidgetMessageHandler = (syncedTable: SyncedTable) => {
+  return (msg: IFrameToWidgetMessage) => {
+    switch (msg.type) {
+      case "RESIZE":
+        figma.ui.resize(msg.width, Math.min(600, Math.round(msg.height)));
+        break;
+      case "NEW_ROW":
+        syncedTable.appendRow(msg.row.rowData);
+        if (msg.closeIframe) {
+          figma.closePlugin();
+        }
+        break;
+      case "UPSERT_ROW":
+        syncedTable.updateRow(msg.row.rowId, msg.row.rowData);
+        if (msg.closeIframe) {
+          figma.closePlugin();
+        }
+        break;
+      case "DELETE_ROW":
+        syncedTable.deleteRow(msg.row.rowId);
+        if (msg.closeIframe) {
+          figma.closePlugin();
+        }
+        break;
+      case "RENAME_TABLE":
+        syncedTable.setTitle(msg.name);
+        if (msg.closeIframe) {
+          figma.closePlugin();
+        }
+        break;
+      case "REORDER_ROW":
+        const newRowId = syncedTable.moveRow(msg.rowId, msg.newRowId);
+        break;
+      case "UPDATE_SCHEMA":
+        syncedTable.setSchema(
+          msg.fields.map((field) => {
+            if (!field.fieldId) {
+              field.fieldId = field.fieldName.toLowerCase();
+            }
+            return field;
+          })
+        );
+        if (msg.closeIframe) {
+          figma.closePlugin();
+        }
+        break;
+      default:
+        assertUnreachable(msg);
+    }
+  };
+};
+
 function ColumnHeader({
   fieldType,
   fieldName,
@@ -322,64 +374,69 @@ function TableFrame({
   );
 }
 
+function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
+  return (
+    <TableFrame
+      headerChildren={
+        <Text fontFamily="Inter" fontSize={16} fontWeight={500} fill="#FFF">
+          Get Started
+        </Text>
+      }
+    >
+      <AutoLayout direction="vertical" spacing={10}>
+        <ButtonRow
+          width={300}
+          onClick={() => {
+            syncedTable.setSchema(DEFAULT_SCHEMA);
+            return showUIWithPayload({
+              type: "EDIT_SCHEMA",
+              title: syncedTable.getTitle(),
+              fields: DEFAULT_SCHEMA,
+            });
+          }}
+        >
+          Create Table
+        </ButtonRow>
+        <ButtonRow
+          width={300}
+          onClick={() => {
+            const stickies = figma.currentPage.findChildren(
+              isSticky
+            ) as StickyNode[];
+            importStickies(syncedTable, stickies);
+          }}
+        >
+          {"Import all stickies"}
+        </ButtonRow>
+        <ButtonRow
+          width={300}
+          onClick={() => {
+            const stickies: StickyNode[] =
+              figma.currentPage.selection.filter(isSticky);
+            if (stickies.length === 0) {
+              figma.notify("Select Stickies to populate table");
+              return;
+            }
+            importStickies(syncedTable, stickies);
+          }}
+        >
+          {"Import selected stickies"}
+        </ButtonRow>
+      </AutoLayout>
+    </TableFrame>
+  );
+}
+
 function Table() {
   const tableMetadata = useSyncedMap<any>("tableMetadata");
   const tableVotes = useSyncedMap<boolean>("tableVotes");
   const tableRows = useSyncedMap<TRow["rowData"]>("tableRows");
   const syncedTable = new SyncedTable(tableMetadata, tableRows, tableVotes);
   const tableSchema = syncedTable.schema;
-
   const showInitialState = tableSchema.length === 0;
+
   useEffect(() => {
-    figma.ui.onmessage = (msg: IFrameToWidgetMessage) => {
-      switch (msg.type) {
-        case "RESIZE":
-          figma.ui.resize(msg.width, Math.min(600, Math.round(msg.height)));
-          break;
-        case "NEW_ROW":
-          syncedTable.appendRow(msg.row.rowData);
-          if (msg.closeIframe) {
-            figma.closePlugin();
-          }
-          break;
-        case "UPSERT_ROW":
-          syncedTable.updateRow(msg.row.rowId, msg.row.rowData);
-          if (msg.closeIframe) {
-            figma.closePlugin();
-          }
-          break;
-        case "DELETE_ROW":
-          syncedTable.deleteRow(msg.row.rowId);
-          if (msg.closeIframe) {
-            figma.closePlugin();
-          }
-          break;
-        case "RENAME_TABLE":
-          syncedTable.setTitle(msg.name);
-          if (msg.closeIframe) {
-            figma.closePlugin();
-          }
-          break;
-        case "REORDER_ROW":
-          const newRowId = syncedTable.moveRow(msg.rowId, msg.newRowId);
-          break;
-        case "UPDATE_SCHEMA":
-          syncedTable.setSchema(
-            msg.fields.map((field) => {
-              if (!field.fieldId) {
-                field.fieldId = field.fieldName.toLowerCase();
-              }
-              return field;
-            })
-          );
-          if (msg.closeIframe) {
-            figma.closePlugin();
-          }
-          break;
-        default:
-          assertUnreachable(msg);
-      }
-    };
+    figma.ui.onmessage = genIFrameToWidgetMessageHandler(syncedTable);
   });
   usePropertyMenu(
     showInitialState
@@ -434,56 +491,7 @@ function Table() {
   );
 
   if (showInitialState) {
-    return (
-      <TableFrame
-        headerChildren={
-          <Text fontFamily="Inter" fontSize={16} fontWeight={500} fill="#FFF">
-            Get Started
-          </Text>
-        }
-      >
-        <AutoLayout direction="vertical" spacing={10}>
-          <ButtonRow
-            width={300}
-            onClick={() => {
-              syncedTable.setSchema(DEFAULT_SCHEMA);
-              return showUIWithPayload({
-                type: "EDIT_SCHEMA",
-                title: syncedTable.getTitle(),
-                fields: DEFAULT_SCHEMA,
-              });
-            }}
-          >
-            Create Table
-          </ButtonRow>
-          <ButtonRow
-            width={300}
-            onClick={() => {
-              const stickies = figma.currentPage.findChildren(
-                isSticky
-              ) as StickyNode[];
-              importStickies(syncedTable, stickies);
-            }}
-          >
-            {"Import all stickies"}
-          </ButtonRow>
-          <ButtonRow
-            width={300}
-            onClick={() => {
-              const stickies: StickyNode[] =
-                figma.currentPage.selection.filter(isSticky);
-              if (stickies.length === 0) {
-                figma.notify("Select Stickies to populate table");
-                return;
-              }
-              importStickies(syncedTable, stickies);
-            }}
-          >
-            {"Import selected stickies"}
-          </ButtonRow>
-        </AutoLayout>
-      </TableFrame>
-    );
+    return <TablePlaceholder syncedTable={syncedTable} />;
   }
 
   return (
