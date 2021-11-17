@@ -214,6 +214,11 @@ function AppPage({ route }: { route: AppRoute }) {
               return newRowId;
             }}
             onRowEdit={(rowId, v) => {
+              setRows((rows) => {
+                return rows.map((r) =>
+                  r.rowId === rowId ? { rowId, rowData: v } : r
+                );
+              });
               if (widgetPayload) {
                 const payload: IFrameToWidgetMessage = {
                   type: "UPSERT_ROW",
