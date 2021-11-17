@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { TableField, FieldType, TRow } from "../shared/types";
 import AutoSubmitter from "./AutoSubmitter";
 import Gear from "./icons/Gear";
+import Trash from "./icons/Trash";
 import { generateValidationSchemaFromTableSchema } from "./RowEditor";
 import { widthForFieldType, assertUnreachable } from "../shared/utils";
 import CustomSelect from "./input/CustomSelect";
@@ -30,6 +31,7 @@ export default function Table({
   rows,
   onEditTitle,
   onRowEdit,
+  onDeleteRow,
   onAppendRow,
   onRowReorder,
   onShowSidecar,
@@ -38,6 +40,7 @@ export default function Table({
   tableSchema: TableField[];
   rows: TRow[];
   onRowEdit: (rowId: TRow["rowId"], v: TRow["rowData"]) => void;
+  onDeleteRow: (rowId: TRow["rowId"]) => void;
   onAppendRow: () => TRow["rowId"];
   onShowSidecar: () => void;
   onEditTitle: (title: string) => void;
@@ -87,6 +90,7 @@ export default function Table({
                 }
                 return <ColumnHeader key={field.fieldId} field={field} />;
               })}
+              <ActionCellBox></ActionCellBox>
             </div>
           </div>
           <div>
@@ -141,6 +145,7 @@ export default function Table({
                                     validationSchema={validationSchema}
                                     dragHandleProps={provided.dragHandleProps}
                                     onEdit={onRowEditInner}
+                                    onDelete={onDeleteRow}
                                   />
                                 </div>
                               )}
@@ -208,6 +213,10 @@ function CellBox({
   );
 }
 
+function ActionCellBox({ children }: { children?: any }) {
+  return <div className={styles.ActionCellBox}>{children}</div>;
+}
+
 function ColumnHeader({ field }: { field: TableField }) {
   return <CellBox field={field}>{field.fieldName}</CellBox>;
 }
@@ -238,6 +247,7 @@ function TableRow({
   dragHandleProps,
   validationSchema,
   onEdit,
+  onDelete,
 }: {
   tableSchema: TableField[];
   row: TRow;
@@ -245,6 +255,7 @@ function TableRow({
   dragHandleProps: any;
   validationSchema: any;
   onEdit: (row: TRow, v: { [key: string]: any }) => void;
+  onDelete: (rowId: TRow["rowId"]) => void;
 }) {
   return (
     <div className={styles.TableRow}>
@@ -254,6 +265,7 @@ function TableRow({
         validationSchema={validationSchema}
         tableSchema={tableSchema}
         onEdit={onEdit}
+        onDelete={onDelete}
       />
     </div>
   );
@@ -289,6 +301,7 @@ function TableAddRow({
             </CellBox>
           );
         })}
+        <ActionCellBox></ActionCellBox>
       </div>
     </div>
   );
@@ -299,10 +312,12 @@ function TableRowForm({
   tableSchema,
   validationSchema,
   onEdit,
+  onDelete,
 }: {
   row: TRow;
   tableSchema: TableField[];
   validationSchema: any;
+  onDelete: (rowId: TRow["rowId"]) => void;
   onEdit: (row: TRow, v: { [key: string]: any }) => void;
 }) {
   return (
@@ -333,6 +348,11 @@ function TableRowForm({
                   />
                 );
               })}
+              <ActionCellBox>
+                <div onClick={() => onDelete(row.rowId)}>
+                  <Trash />
+                </div>
+              </ActionCellBox>
             </div>
           </Form>
         );

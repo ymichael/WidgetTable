@@ -350,7 +350,9 @@ function Table() {
           break;
         case "DELETE_ROW":
           syncedTable.deleteRow(msg.row.rowId);
-          figma.closePlugin();
+          if (msg.closeIframe) {
+            figma.closePlugin();
+          }
           break;
         case "RENAME_TABLE":
           syncedTable.setTitle(msg.name);

@@ -102,6 +102,7 @@ function AppPage({ route }: { route: AppRoute }) {
             if (widgetPayload && route.isEdit) {
               const payload: IFrameToWidgetMessage = {
                 type: "DELETE_ROW",
+                closeIframe: true,
                 row: {
                   rowId: route.row.rowId,
                 },
@@ -146,6 +147,19 @@ function AppPage({ route }: { route: AppRoute }) {
               }
             }}
             onShowSidecar={() => setShowSidecar(true)}
+            onDeleteRow={(rowId) => {
+              if (widgetPayload) {
+                const payload: IFrameToWidgetMessage = {
+                  type: "DELETE_ROW",
+                  closeIframe: false,
+                  row: { rowId },
+                };
+                parent?.postMessage({ pluginMessage: payload }, "*");
+              } else {
+                setRows(rows.filter((row) => row.rowId !== rowId));
+                console.log("onDelete", rowId);
+              }
+            }}
             onRowReorder={({ rowId, afterRowId, beforeRowId }) => {
               if (widgetPayload) {
                 const payload: IFrameToWidgetMessage = {

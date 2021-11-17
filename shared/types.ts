@@ -103,6 +103,7 @@ export type IFrameToWidgetMessage =
     }
   | {
       type: "DELETE_ROW";
+      closeIframe: boolean;
       row: Pick<TRow, "rowId">;
     }
   | {
