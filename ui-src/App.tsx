@@ -244,12 +244,12 @@ function AppPage({ route }: { route: AppRoute }) {
                     if (widgetPayload) {
                       const payload: IFrameToWidgetMessage = {
                         type: "UPDATE_SCHEMA",
-                        closeIframe,
+                        closeIframe: false,
                         fields: v.fields,
                       };
                       parent?.postMessage({ pluginMessage: payload }, "*");
                     } else {
-                      console.log({ schema: v, closeIframe });
+                      console.log({ schema: v });
                     }
                     setTableSchema(v.fields);
                     if (closeIframe) {
