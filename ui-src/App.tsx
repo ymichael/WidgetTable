@@ -204,7 +204,7 @@ function AppPage({ route }: { route: AppRoute }) {
             }}
             onAppendRow={() => {
               const newRowId = fractionalIndex(
-                rows[rows.length - 1].rowId || "a0",
+                rows.length !== 0 ? rows[rows.length - 1].rowId : "a0",
                 null
               );
               setRows([...rows, { rowId: newRowId, rowData: {} }]);

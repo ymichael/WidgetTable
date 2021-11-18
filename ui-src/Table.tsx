@@ -178,6 +178,7 @@ function TableTitle({
     <div className={styles.TableTitle}>
       <input
         type="text"
+        placeholder="Untitled"
         value={title}
         autoComplete="off"
         onChange={(e) => {
@@ -281,6 +282,7 @@ function TableAddRow({
       <div className={styles.TableRowInner}>
         {tableSchema.map((field) => {
           if (shouldSkipField(field)) {
+            return null;
           }
           return (
             <CellBox key={field.fieldId} field={field}>

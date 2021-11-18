@@ -4,6 +4,7 @@
 import { FieldProps } from "formik";
 import React from "react";
 import Select from "react-select";
+import { theme } from "../../shared/theme";
 
 interface Option {
   label: string;
@@ -53,12 +54,12 @@ export default function CustomSelect({
       placeholder={placeholder}
       options={options}
       isMulti={isMulti}
-      theme={(theme) => ({
-        ...theme,
+      theme={(og) => ({
+        ...og,
         colors: {
-          ...theme.colors,
-          primary25: "#e9ccff",
-          primary: "#A83FFB",
+          ...og.colors,
+          primary25: theme.colors.BG,
+          primary: theme.colors.PRIMARY,
         },
       })}
     />

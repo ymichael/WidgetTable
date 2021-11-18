@@ -13,6 +13,7 @@ if (rootEl) {
             {
               pluginMessage: {
                 type: "RESIZE",
+                payloadType: (window as any).widgetPayload?.type,
                 height: entry.contentRect.height,
                 width: entry.contentRect.width,
               },

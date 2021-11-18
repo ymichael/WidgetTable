@@ -83,6 +83,7 @@ export type WidgetToIFrameShowUIMessage = {
 export type IFrameToWidgetMessage =
   | {
       type: "RESIZE";
+      payloadType: WidgetToIFrameShowUIMessage["type"];
       width: number;
       height: number;
     }

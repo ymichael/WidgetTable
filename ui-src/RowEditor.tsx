@@ -119,17 +119,6 @@ export default function RowEditor({
                       </button>
                       <button
                         type="button"
-                        disabled={!formik.isValid}
-                        onClick={() => {
-                          if (formik.isValid) {
-                            onCreate(formik.values, false);
-                          }
-                        }}
-                      >
-                        Duplicate
-                      </button>
-                      <button
-                        type="button"
                         style={{ color: "#f10d0d" }}
                         onClick={() => {
                           onDelete();

@@ -6,6 +6,7 @@ import {
   WidgetToIFramePostMessage,
   WidgetToIFrameShowUIMessage,
 } from "../shared/types";
+import { theme } from "../shared/theme";
 import {
   DEFAULT_SCHEMA,
   STICKY_SCHEMA,
@@ -70,7 +71,7 @@ function getInitialSizeForPayload({
         (acc, f) => widthForFieldType(f.fieldType, true /* isForm */) + acc,
         0
       );
-      return [300 + fieldWidthSum, 600];
+      return [500 + fieldWidthSum, 600];
     default:
       return [400, Math.min(200 + fields.length * 100, 500)];
   }
@@ -99,7 +100,11 @@ const genIFrameToWidgetMessageHandler = (syncedTable: SyncedTable) => {
   return (msg: IFrameToWidgetMessage) => {
     switch (msg.type) {
       case "RESIZE":
-        figma.ui.resize(msg.width, Math.min(600, Math.round(msg.height)));
+        if (msg.payloadType === "FULL_TABLE") {
+          figma.ui.resize(msg.width, Math.max(600, Math.round(msg.height)));
+        } else {
+          figma.ui.resize(msg.width, Math.min(600, Math.round(msg.height)));
+        }
         break;
       case "NEW_ROW":
         syncedTable.appendRow(msg.row.rowData);
@@ -201,7 +206,7 @@ function Pill({
   return (
     <AutoLayout
       cornerRadius={10}
-      fill="#EEE"
+      fill={theme.colors.BG}
       width="hug-contents"
       padding={{ horizontal: 10, vertical: 5 }}
       {...additionalProps}
@@ -321,18 +326,14 @@ function ButtonRow({
   return (
     <AutoLayout
       width={width}
-      fill={{
-        type: "solid",
-        opacity: 0.12,
-        color: { r: 0.65, g: 0.24, b: 0.98, a: 1 },
-      }}
+      fill={theme.colors.BORDER}
       cornerRadius={20}
       padding={10}
       horizontalAlignItems="center"
       verticalAlignItems="center"
       onClick={onClick}
     >
-      <Text fontSize={12} fontFamily="Inter">
+      <Text fontSize={12} fontWeight={500} fontFamily="Inter">
         {children}
       </Text>
     </AutoLayout>
@@ -356,12 +357,12 @@ function TableFrame({
       spacing={SPACING_VERTICAL}
       strokeWidth={2}
       fill="#FFF"
-      stroke="#A83FFB"
+      stroke={theme.colors.PRIMARY}
     >
       <AutoLayout
         height={40}
         width="fill-parent"
-        fill="#A83FFB"
+        fill={theme.colors.PRIMARY}
         verticalAlignItems="center"
         horizontalAlignItems="center"
       >
@@ -403,6 +404,10 @@ function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
             const stickies = figma.currentPage.findChildren(
               isSticky
             ) as StickyNode[];
+            if (stickies.length === 0) {
+              figma.notify("Could not find any stickies");
+              return;
+            }
             importStickies(syncedTable, stickies);
           }}
         >
@@ -414,7 +419,7 @@ function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
             const stickies: StickyNode[] =
               figma.currentPage.selection.filter(isSticky);
             if (stickies.length === 0) {
-              figma.notify("Select Stickies to populate table");
+              figma.notify("Select stickies to import");
               return;
             }
             importStickies(syncedTable, stickies);

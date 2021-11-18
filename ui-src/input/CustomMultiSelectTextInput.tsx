@@ -6,6 +6,7 @@
  */
 import * as React from "react";
 import { useState, useEffect } from "react";
+import { theme } from "../../shared/theme";
 
 import CreatableSelect from "react-select/creatable";
 
@@ -62,12 +63,12 @@ export default function CustomMultiSelectTextInput({
       }}
       placeholder="Type something and press enter..."
       value={value}
-      theme={(theme) => ({
-        ...theme,
+      theme={(og) => ({
+        ...og,
         colors: {
-          ...theme.colors,
-          primary25: "#e9ccff",
-          primary: "#A83FFB",
+          ...og.colors,
+          primary25: theme.colors.BG,
+          primary: theme.colors.PRIMARY,
         },
       })}
     />

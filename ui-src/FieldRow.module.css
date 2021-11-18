@@ -39,7 +39,7 @@
 .FieldRow textarea:focus,
 .FieldRow input[type="text"]:focus {
   border: none;
-  outline: 2px solid #a83ffb;
+  outline: 2px solid #3f3f3f;
 }
 
 .FieldError {
