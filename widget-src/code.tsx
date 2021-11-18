@@ -435,9 +435,47 @@ function Table() {
   const tableSchema = syncedTable.schema;
   const showInitialState = tableSchema.length === 0;
 
+  let tableTitle = syncedTable.getTitle();
+  let rowsVersion = syncedTable.rowsVersion;
+  let schemaVersion = syncedTable.schemaVersion;
+
   useEffect(() => {
     figma.ui.onmessage = genIFrameToWidgetMessageHandler(syncedTable);
+    const timer = setInterval(() => {
+      if (rowsVersion !== syncedTable.rowsVersion) {
+        rowsVersion = syncedTable.rowsVersion;
+        const updateRowsMsg: WidgetToIFramePostMessage = {
+          type: "UPDATE_ROWS",
+          rows: syncedTable.getRows().map(([rowKey, row]) => ({
+            rowId: rowKey,
+            rowData: row,
+          })),
+        };
+        figma.ui.postMessage(updateRowsMsg);
+        syncedTable.forceRerender();
+      }
+      if (tableTitle !== syncedTable.getTitle()) {
+        tableTitle = syncedTable.getTitle();
+        const updateTitleMsg: WidgetToIFramePostMessage = {
+          type: "UPDATE_TITLE",
+          title: tableTitle,
+        };
+        figma.ui.postMessage(updateTitleMsg);
+        syncedTable.forceRerender();
+      }
+      if (schemaVersion !== syncedTable.schemaVersion) {
+        schemaVersion = syncedTable.schemaVersion;
+        const updateSchemaMsg: WidgetToIFramePostMessage = {
+          type: "UPDATE_SCHEMA",
+          fields: syncedTable.schema,
+        };
+        figma.ui.postMessage(updateSchemaMsg);
+        syncedTable.forceRerender();
+      }
+    }, 1000);
+    return () => clearInterval(timer);
   });
+
   usePropertyMenu(
     showInitialState
       ? []
@@ -465,7 +503,7 @@ function Table() {
       if (propertyName === "editSchema") {
         return showUIWithPayload({
           type: "EDIT_SCHEMA",
-          title: syncedTable.getTitle(),
+          title: tableTitle,
           fields: tableSchema,
         });
       } else if (propertyName === "editTable") {
@@ -476,12 +514,12 @@ function Table() {
             rowId: rowKey,
             rowData: row,
           })),
-          title: syncedTable.getTitle(),
+          title: tableTitle,
         });
       } else if (propertyName === "newRow") {
         return showUIWithPayload({
           type: "NEW_ROW",
-          title: syncedTable.getTitle(),
+          title: tableTitle,
           fields: tableSchema,
         });
       } else if (propertyName === "deleteAllRows") {
@@ -505,7 +543,7 @@ function Table() {
           onClick={() => {
             return showUIWithPayload({
               type: "FULL_TABLE",
-              title: syncedTable.getTitle(),
+              title: tableTitle,
               rows: syncedTable.getRows().map(([rowKey, row]) => ({
                 rowId: rowKey,
                 rowData: row,
@@ -514,7 +552,7 @@ function Table() {
             });
           }}
         >
-          {syncedTable.getTitle() || "Untitled"}
+          {tableTitle || "Untitled"}
         </Text>
       }
     >
@@ -540,7 +578,7 @@ function Table() {
           const onEditRow = () => {
             return showUIWithPayload({
               type: "EDIT_ROW",
-              title: syncedTable.getTitle(),
+              title: tableTitle,
               fields: tableSchema,
               row: {
                 rowId: rowKey,
@@ -571,7 +609,7 @@ function Table() {
         onClick={() => {
           return showUIWithPayload({
             type: "NEW_ROW",
-            title: syncedTable.getTitle(),
+            title: tableTitle,
             fields: tableSchema,
           });
         }}
@@ -581,4 +619,5 @@ function Table() {
     </TableFrame>
   );
 }
+
 widget.register(Table);

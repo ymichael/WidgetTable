@@ -30,7 +30,7 @@
   "devDependencies": {
     "@figma/plugin-typings": "^1.37.0",
     "@figma/widget-typings": "^1.0.2",
-    "@types/lodash": "^4.14.176",
+    "@types/lodash": "^4.14.177",
     "@types/react": "^17.0.0",
     "@types/react-beautiful-dnd": "^13.1.2",
     "@types/react-dom": "^17.0.0",

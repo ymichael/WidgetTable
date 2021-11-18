@@ -46,13 +46,19 @@ export type TRow = {
   rowData: { [key: string]: any };
 };
 
-export type WidgetToIFramePostMessage = {
-  type: "UPDATE_ROW_ORDER";
-  orderedRowIds: TRow["rowId"][];
-  updatedRowIds: {
-    [oldRowId: TRow["rowId"]]: TRow["rowId"];
-  };
-};
+export type WidgetToIFramePostMessage =
+  | {
+      type: "UPDATE_ROWS";
+      rows: TRow[];
+    }
+  | {
+      type: "UPDATE_SCHEMA";
+      fields: TableField[];
+    }
+  | {
+      type: "UPDATE_TITLE";
+      title: string;
+    };
 
 export type WidgetToIFrameShowUIMessage = {
   fields: TableField[];

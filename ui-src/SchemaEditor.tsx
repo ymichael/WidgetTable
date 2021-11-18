@@ -67,6 +67,7 @@ export default function SchemaEditor({
   return (
     <div className={styles.SchemaEditor}>
       <Formik
+        enableReinitialize
         initialValues={initialValues}
         validationSchema={fieldsSchema}
         onSubmit={(values, { setSubmitting }) => {

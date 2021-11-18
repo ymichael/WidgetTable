@@ -7,6 +7,11 @@ export default class SyncedTable {
   TABLE_TITLE_KEY = "table-title-key";
   TABLE_SCHEMA_KEY = "table-schema-key";
 
+  // Used to track if there are any changes to rows / schema
+  // to update iframe with row changes.
+  ROWS_VERSION_KEY = "rows-version-key";
+  SCHEMA_VERSION_KEY = "schema-version-key";
+
   private nonVoteFieldIds: Set<string>;
 
   constructor(
@@ -32,12 +37,29 @@ export default class SyncedTable {
     );
   }
 
+  forceRerender(): void {
+    this.metadata.set(this.ROWS_VERSION_KEY, this.rowsVersion);
+  }
+
+  get rowsVersion(): number {
+    return this.metadata.get(this.ROWS_VERSION_KEY) || 0;
+  }
+
+  private dirtyRows(): void {
+    this.metadata.set(this.ROWS_VERSION_KEY, this.rowsVersion + 1);
+  }
+
+  get schemaVersion(): number {
+    return this.metadata.get(this.SCHEMA_VERSION_KEY) || 0;
+  }
+
   get schema(): TableField[] {
     return this.metadata.get(this.TABLE_SCHEMA_KEY) || [];
   }
 
   setSchema(schema: TableField[]): void {
     this.metadata.set(this.TABLE_SCHEMA_KEY, schema);
+    this.metadata.set(this.SCHEMA_VERSION_KEY, this.schemaVersion + 1);
     this.updateNonVoteFieldIds();
   }
 
@@ -65,10 +87,12 @@ export default class SyncedTable {
 
   appendRow(rowData: TRow["rowData"]): void {
     this.rows.set(`${this.genRowId()}`, this.sanitizeRow(rowData));
+    this.dirtyRows();
   }
 
   updateRow(rowId: string, rowData: TRow["rowData"]): void {
     this.rows.set(rowId, this.sanitizeRow(rowData));
+    this.dirtyRows();
   }
 
   moveRow(rowId: string, newRowId: string): string | null {
@@ -82,6 +106,7 @@ export default class SyncedTable {
     // TODO what happens if rows are re-ordered while voting
     this.rows.delete(oldRowId);
     this.rows.set(newRowId, row);
+    this.dirtyRows();
     this.votes.keys().forEach((voteKey) => {
       const { rowId, fieldId, userId } = this.fromVoteKey(voteKey);
       if (rowId === oldRowId) {
@@ -94,6 +119,7 @@ export default class SyncedTable {
 
   deleteRow(rowId: string): void {
     this.rows.delete(rowId);
+    this.dirtyRows();
   }
 
   getVotesMap(): { [rowId: string]: { [fieldId: string]: number } } {
@@ -141,6 +167,7 @@ export default class SyncedTable {
       ...this.rows.get(rowId),
       [fieldId]: value,
     });
+    this.dirtyRows();
   }
 
   toggleVote(args: { rowId: string; fieldId: string; userId: string }): void {
@@ -150,6 +177,7 @@ export default class SyncedTable {
     } else {
       this.votes.set(voteKey, true);
     }
+    this.dirtyRows();
   }
 
   getRowIdsOrdered(): TRow["rowId"][] {

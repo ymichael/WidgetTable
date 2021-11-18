@@ -319,6 +319,7 @@ function TableRowForm({
 }) {
   return (
     <Formik
+      enableReinitialize
       initialValues={row.rowData}
       validationSchema={validationSchema}
       onSubmit={(values, { setSubmitting }) => {

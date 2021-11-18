@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
+import { isEqual } from "lodash";
 import styles from "./App.module.css";
 
 import SchemaEditor from "./SchemaEditor";
@@ -41,19 +42,23 @@ function AppPage({ route }: { route: AppRoute }) {
         console.warn(`Unknown event: ${evt}`);
         return;
       }
-      if (evt.type === "UPDATE_ROW_ORDER") {
-        const { orderedRowIds, updatedRowIds } = evt;
-        if (widgetPayload.type === "FULL_TABLE") {
-          const rowById: { [id: TRow["rowId"]]: TRow } = {};
-          rows.forEach((existingRow) => {
-            // Try not to mutate existing rows as much as possible.
-            if (updatedRowIds[existingRow.rowId]) {
-              existingRow.rowId = updatedRowIds[existingRow.rowId];
-            }
-            rowById[existingRow.rowId] = existingRow;
-          });
-          setRows(orderedRowIds.map((rowId) => rowById[rowId]));
-        }
+      if (evt.type === "UPDATE_ROWS") {
+        const rowById: Record<TRow["rowId"], TRow> = {};
+        rows.forEach((r) => {
+          rowById[r.rowId] = r;
+        });
+        const updatedRows = evt.rows.map((row) => {
+          if (rowById[row.rowId] && isEqual(rowById[row.rowId], row)) {
+            return rowById[row.rowId];
+          } else {
+            return row;
+          }
+        });
+        setRows(updatedRows);
+      } else if (evt.type === "UPDATE_SCHEMA") {
+        setTableSchema(evt.fields);
+      } else if (evt.type === "UPDATE_TITLE") {
+        setTitle(evt.title);
       }
     };
   }, []);

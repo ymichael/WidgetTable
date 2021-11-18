@@ -30,7 +30,7 @@ export default class AutoSubmitter extends React.Component<AutoSubmitterProps> {
       this.lastSubmittedValues = this.props.formik.values;
       this.props.onAutoSubmit(this.lastSubmittedValues);
     },
-    100,
+    200,
     { maxWait: 1000 }
   );
 
