@@ -7,11 +7,7 @@ import {
   WidgetToIFrameShowUIMessage,
 } from "../shared/types";
 import { Theme, getTheme, getRandomTheme } from "../shared/theme";
-import {
-  DEFAULT_SCHEMA,
-  STICKY_SCHEMA,
-  STICKY_NO_AUTHOR_SCHEMA,
-} from "./constants";
+import { Template, TEMPLATES, DEFAULT_SCHEMA } from "./constants";
 import {
   checkedSvg,
   uncheckedSvg,
@@ -21,6 +17,10 @@ import {
 } from "./svgSrc";
 import { assertUnreachable, widthForFieldType } from "../shared/utils";
 import SyncedTable from "./syncedTable";
+import {
+  importStickiesOnPage,
+  importSelectedStickiesOnPage,
+} from "./importUtils";
 
 const { widget } = figma;
 const {
@@ -37,28 +37,6 @@ const {
 const SPACING_VERTICAL = 15;
 const SPACING_HORIZONTAL = 20;
 const IFRAME_WIDTH = 800;
-
-function isSticky(node: SceneNode): node is StickyNode {
-  return node.type === "STICKY";
-}
-
-function importStickies(
-  syncedTable: SyncedTable,
-  stickies: StickyNode[]
-): void {
-  const hasVisibleAuthor = stickies.some((x) => x.authorVisible);
-  syncedTable.setSchema(
-    hasVisibleAuthor ? STICKY_SCHEMA : STICKY_NO_AUTHOR_SCHEMA
-  );
-  syncedTable.setTitle("Stickies");
-  stickies.forEach((sticky) => {
-    syncedTable.appendRow({
-      text: sticky.text.characters,
-      // @ts-expect-error
-      author: sticky.authorVisible ? sticky.authorName : "",
-    });
-  });
-}
 
 function getInitialSizeForPayload({
   type,
@@ -321,11 +299,13 @@ function CellValue({
 function ButtonRow({
   onClick,
   width = "fill-parent",
+  size = "regular",
   theme,
   children,
 }: {
   width?: "fill-parent" | "hug-contents" | number;
   theme: Theme;
+  size?: "regular" | "large";
   onClick: () => void;
   children?: any;
   key?: any;
@@ -333,14 +313,18 @@ function ButtonRow({
   return (
     <AutoLayout
       width={width}
-      fill={theme.LIGHT}
       cornerRadius={20}
-      padding={10}
+      fill={theme.LIGHT}
+      padding={size === "regular" ? 10 : 20}
       horizontalAlignItems="center"
       verticalAlignItems="center"
       onClick={onClick}
     >
-      <Text fontSize={12} fontWeight={500} fontFamily="Inter">
+      <Text
+        fontSize={size === "regular" ? 12 : 16}
+        fontWeight={size === "regular" ? 500 : 800}
+        fontFamily="Inter"
+      >
         {children}
       </Text>
     </AutoLayout>
@@ -384,6 +368,34 @@ function TableFrame({
   );
 }
 
+function TemplateTile({
+  template,
+  theme,
+}: {
+  template: Template;
+  theme: Theme;
+}) {
+  return (
+    <AutoLayout
+      direction="vertical"
+      spacing={5}
+      height={100}
+      width={160}
+      padding={10}
+      verticalAlignItems="start"
+      cornerRadius={8}
+      fill={theme.LIGHT}
+    >
+      <Text fontFamily="Inter" fontWeight={800} fontSize={14} width={120}>
+        {template.title}
+      </Text>
+      <Text fontFamily="Inter" fontWeight={400} fontSize={12} width={120}>
+        {template.description ?? ""}
+      </Text>
+    </AutoLayout>
+  );
+}
+
 function TablePlaceholder({
   theme,
   syncedTable,
@@ -395,58 +407,70 @@ function TablePlaceholder({
     <TableFrame
       theme={theme}
       headerChildren={
-        <Text fontFamily="Inter" fontSize={16} fontWeight={500} fill="#FFF">
+        <Text fontFamily="Inter" fontSize={18} fontWeight={500} fill="#FFF">
           Get Started
         </Text>
       }
     >
-      <AutoLayout direction="vertical" spacing={10}>
-        <ButtonRow
-          width={300}
-          theme={theme}
-          onClick={() => {
-            syncedTable.setSchema(DEFAULT_SCHEMA);
-            return showUIWithPayload({
-              type: "EDIT_SCHEMA",
-              title: syncedTable.getTitle(),
-              themeName: theme.name,
-              fields: DEFAULT_SCHEMA,
-            });
-          }}
-        >
-          Create Table
-        </ButtonRow>
-        <ButtonRow
-          width={300}
-          theme={theme}
-          onClick={() => {
-            const stickies = figma.currentPage.findChildren(
-              isSticky
-            ) as StickyNode[];
-            if (stickies.length === 0) {
-              figma.notify("Could not find any stickies");
-              return;
-            }
-            importStickies(syncedTable, stickies);
-          }}
-        >
-          {"Import all stickies"}
-        </ButtonRow>
-        <ButtonRow
-          width={300}
-          theme={theme}
-          onClick={() => {
-            const stickies: StickyNode[] =
-              figma.currentPage.selection.filter(isSticky);
-            if (stickies.length === 0) {
-              figma.notify("Select stickies to import");
-              return;
-            }
-            importStickies(syncedTable, stickies);
-          }}
-        >
-          {"Import selected stickies"}
-        </ButtonRow>
+      <AutoLayout direction="vertical" spacing={20}>
+        <AutoLayout direction="vertical" width="fill-parent" spacing={8}>
+          <Text fontFamily="Inter" fontSize={18} fontWeight={600}>
+            Quick Start
+          </Text>
+          <ButtonRow
+            size="large"
+            width="fill-parent"
+            theme={theme}
+            onClick={() => {
+              syncedTable.setSchema(DEFAULT_SCHEMA);
+              return showUIWithPayload({
+                type: "EDIT_SCHEMA",
+                title: syncedTable.getTitle(),
+                themeName: theme.name,
+                fields: DEFAULT_SCHEMA,
+              });
+            }}
+          >
+            New Table
+          </ButtonRow>
+          <AutoLayout direction="horizontal" spacing={10}>
+            <ButtonRow
+              size="large"
+              width={160}
+              theme={theme}
+              onClick={() => {
+                importStickiesOnPage(syncedTable);
+              }}
+            >
+              Import Stickies
+            </ButtonRow>
+            <ButtonRow
+              size="large"
+              width={160}
+              theme={theme}
+              onClick={() => {
+                importSelectedStickiesOnPage(syncedTable);
+              }}
+            >
+              Import Selection
+            </ButtonRow>
+          </AutoLayout>
+        </AutoLayout>
+        <AutoLayout direction="vertical" spacing={8}>
+          <Text fontFamily="Inter" fontSize={18} fontWeight={600}>
+            Templates
+          </Text>
+          {TEMPLATES.map((template, idx) => {
+            return idx % 2 !== 0 ? null : (
+              <AutoLayout key={idx} direction="horizontal" spacing={10}>
+                <TemplateTile template={template} theme={theme} />
+                {idx + 1 <= TEMPLATES.length - 1 && (
+                  <TemplateTile theme={theme} template={TEMPLATES[idx + 1]} />
+                )}
+              </AutoLayout>
+            );
+          })}
+        </AutoLayout>
       </AutoLayout>
     </TableFrame>
   );
