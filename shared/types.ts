@@ -63,6 +63,7 @@ export type WidgetToIFramePostMessage =
 export type WidgetToIFrameShowUIMessage = {
   fields: TableField[];
   title: string;
+  themeName: string;
 } & (
   | {
       type: "EDIT_SCHEMA";

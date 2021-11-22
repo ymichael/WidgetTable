@@ -6,7 +6,7 @@ import {
   WidgetToIFramePostMessage,
   WidgetToIFrameShowUIMessage,
 } from "../shared/types";
-import { theme } from "../shared/theme";
+import { Theme, getTheme, getRandomTheme } from "../shared/theme";
 import {
   DEFAULT_SCHEMA,
   STICKY_SCHEMA,
@@ -197,16 +197,18 @@ function RowIdx({ idx }: { idx: number }) {
 function Pill({
   value,
   onClick,
+  theme,
 }: {
   key?: string;
   value: any;
+  theme: Theme;
   onClick?: () => void;
 }) {
   const additionalProps = onClick ? { onClick } : {};
   return (
     <AutoLayout
       cornerRadius={10}
-      fill={theme.colors.BG}
+      fill={theme.LIGHT}
       width="hug-contents"
       padding={{ horizontal: 10, vertical: 5 }}
       {...additionalProps}
@@ -223,6 +225,7 @@ function CellValue({
   field,
   syncedTable,
   rowKey,
+  theme,
   onEditRow,
 }: {
   key: any;
@@ -230,6 +233,7 @@ function CellValue({
   syncedTable: SyncedTable;
   rowKey: string;
   field: TableField;
+  theme: Theme;
   onEditRow: () => void;
 }) {
   const { fieldId, fieldType } = field;
@@ -237,7 +241,7 @@ function CellValue({
     if (fieldType === FieldType.SELECT_SINGLE) {
       return (
         <AutoLayout width={widthForFieldType(fieldType)}>
-          <Pill value={value} />
+          <Pill value={value} theme={theme} />
         </AutoLayout>
       );
     }
@@ -245,7 +249,7 @@ function CellValue({
       return (
         <AutoLayout spacing={5} width={widthForFieldType(fieldType)}>
           {value?.map((v, idx) => (
-            <Pill key={idx} value={v} />
+            <Pill key={idx} value={v} theme={theme} />
           ))}
         </AutoLayout>
       );
@@ -257,6 +261,7 @@ function CellValue({
       <AutoLayout width={widthForFieldType(fieldType)}>
         <Pill
           value={value || 0}
+          theme={theme}
           onClick={() => {
             syncedTable.toggleVote({
               rowId: rowKey,
@@ -316,9 +321,11 @@ function CellValue({
 function ButtonRow({
   onClick,
   width = "fill-parent",
+  theme,
   children,
 }: {
   width?: "fill-parent" | "hug-contents" | number;
+  theme: Theme;
   onClick: () => void;
   children?: any;
   key?: any;
@@ -326,7 +333,7 @@ function ButtonRow({
   return (
     <AutoLayout
       width={width}
-      fill={theme.colors.BORDER}
+      fill={theme.LIGHT}
       cornerRadius={20}
       padding={10}
       horizontalAlignItems="center"
@@ -342,8 +349,10 @@ function ButtonRow({
 
 function TableFrame({
   headerChildren,
+  theme,
   children,
 }: {
+  theme: Theme;
   headerChildren: any;
   children?: any;
 }) {
@@ -357,12 +366,12 @@ function TableFrame({
       spacing={SPACING_VERTICAL}
       strokeWidth={2}
       fill="#FFF"
-      stroke={theme.colors.PRIMARY}
+      stroke={theme.PRIMARY}
     >
       <AutoLayout
         height={40}
         width="fill-parent"
-        fill={theme.colors.PRIMARY}
+        fill={theme.PRIMARY}
         verticalAlignItems="center"
         horizontalAlignItems="center"
       >
@@ -375,9 +384,16 @@ function TableFrame({
   );
 }
 
-function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
+function TablePlaceholder({
+  theme,
+  syncedTable,
+}: {
+  theme: Theme;
+  syncedTable: SyncedTable;
+}) {
   return (
     <TableFrame
+      theme={theme}
       headerChildren={
         <Text fontFamily="Inter" fontSize={16} fontWeight={500} fill="#FFF">
           Get Started
@@ -387,11 +403,13 @@ function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
       <AutoLayout direction="vertical" spacing={10}>
         <ButtonRow
           width={300}
+          theme={theme}
           onClick={() => {
             syncedTable.setSchema(DEFAULT_SCHEMA);
             return showUIWithPayload({
               type: "EDIT_SCHEMA",
               title: syncedTable.getTitle(),
+              themeName: theme.name,
               fields: DEFAULT_SCHEMA,
             });
           }}
@@ -400,6 +418,7 @@ function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
         </ButtonRow>
         <ButtonRow
           width={300}
+          theme={theme}
           onClick={() => {
             const stickies = figma.currentPage.findChildren(
               isSticky
@@ -415,6 +434,7 @@ function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
         </ButtonRow>
         <ButtonRow
           width={300}
+          theme={theme}
           onClick={() => {
             const stickies: StickyNode[] =
               figma.currentPage.selection.filter(isSticky);
@@ -432,6 +452,8 @@ function TablePlaceholder({ syncedTable }: { syncedTable: SyncedTable }) {
   );
 }
 
+const randomTheme = getRandomTheme();
+
 function Table() {
   const tableMetadata = useSyncedMap<any>("tableMetadata");
   const tableVotes = useSyncedMap<boolean>("tableVotes");
@@ -443,8 +465,13 @@ function Table() {
   let tableTitle = syncedTable.getTitle();
   let rowsVersion = syncedTable.rowsVersion;
   let schemaVersion = syncedTable.schemaVersion;
+  const theme = syncedTable.theme ? getTheme(syncedTable.theme) : randomTheme;
 
   useEffect(() => {
+    if (!syncedTable.theme) {
+      syncedTable.setTheme(theme.name);
+    }
+
     figma.ui.onmessage = genIFrameToWidgetMessageHandler(syncedTable);
     const timer = setInterval(() => {
       if (rowsVersion !== syncedTable.rowsVersion) {
@@ -509,6 +536,7 @@ function Table() {
         return showUIWithPayload({
           type: "EDIT_SCHEMA",
           title: tableTitle,
+          themeName: theme.name,
           fields: tableSchema,
         });
       } else if (propertyName === "editTable") {
@@ -519,12 +547,14 @@ function Table() {
             rowId: rowKey,
             rowData: row,
           })),
+          themeName: theme.name,
           title: tableTitle,
         });
       } else if (propertyName === "newRow") {
         return showUIWithPayload({
           type: "NEW_ROW",
           title: tableTitle,
+          themeName: theme.name,
           fields: tableSchema,
         });
       } else if (propertyName === "deleteAllRows") {
@@ -534,11 +564,12 @@ function Table() {
   );
 
   if (showInitialState) {
-    return <TablePlaceholder syncedTable={syncedTable} />;
+    return <TablePlaceholder theme={theme} syncedTable={syncedTable} />;
   }
 
   return (
     <TableFrame
+      theme={theme}
       headerChildren={
         <Text
           fontFamily="Inter"
@@ -553,6 +584,7 @@ function Table() {
                 rowId: rowKey,
                 rowData: row,
               })),
+              themeName: theme.name,
               fields: tableSchema,
             });
           }}
@@ -585,6 +617,7 @@ function Table() {
               type: "EDIT_ROW",
               title: tableTitle,
               fields: tableSchema,
+              themeName: theme.name,
               row: {
                 rowId: rowKey,
                 rowData: row,
@@ -597,6 +630,7 @@ function Table() {
               {tableSchema.map((field) => {
                 return (
                   <CellValue
+                    theme={theme}
                     onEditRow={onEditRow}
                     syncedTable={syncedTable}
                     key={field.fieldId}
@@ -611,11 +645,13 @@ function Table() {
         })}
       </AutoLayout>
       <ButtonRow
+        theme={theme}
         onClick={() => {
           return showUIWithPayload({
             type: "NEW_ROW",
             title: tableTitle,
             fields: tableSchema,
+            themeName: theme.name,
           });
         }}
       >

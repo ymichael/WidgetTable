@@ -39,7 +39,7 @@
 .FieldRow textarea:focus,
 .FieldRow input[type="text"]:focus {
   border: none;
-  outline: 2px solid #3f3f3f;
+  outline: 2px solid var(--colorPrimary);
 }
 
 .FieldError {
@@ -56,12 +56,13 @@
 .Button,
 .ButtonRow button {
   margin: 0 5px;
-  border: solid 2px;
+  border: solid 3px var(--colorPrimary);
   outline: 0;
   border-radius: 20px;
   padding: 8px 16px;
   font-size: 16px;
-  color: #2a2a2a;
+  font-weight: 700;
+  color: var(--colorDark);
   background-color: transparent;
 }
 

@@ -5,8 +5,9 @@
  * Adapted from https://react-select.com/creatable
  */
 import * as React from "react";
-import { useState, useEffect } from "react";
-import { theme } from "../../shared/theme";
+import { useContext, useState, useEffect } from "react";
+import ThemeContext from "../ThemeContext";
+import { getTheme } from "../../shared/theme";
 
 import CreatableSelect from "react-select/creatable";
 
@@ -31,6 +32,7 @@ export default function CustomMultiSelectTextInput({
   initialValue: string[];
   onChange: (value: string[]) => void;
 }) {
+  const theme = getTheme(useContext(ThemeContext));
   const [inputValue, setInputValue] = useState<string>("");
   const [value, setValue] = useState<Option[]>(initialValue.map(createOption));
   useEffect(() => {
@@ -67,8 +69,10 @@ export default function CustomMultiSelectTextInput({
         ...og,
         colors: {
           ...og.colors,
-          primary25: theme.colors.BG,
-          primary: theme.colors.PRIMARY,
+          primary25: theme.LIGHT,
+          primary50: theme.LIGHT,
+          primary75: theme.LIGHT,
+          primary: theme.PRIMARY,
         },
       })}
     />

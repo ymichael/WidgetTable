@@ -1,6 +1,6 @@
 .Table {
   border: solid 1px #eee;
-  border-top: solid 2px #3f3f3f;
+  border-top: solid 2px var(--colorPrimary);
   position: relative;
   display: table;
 }
@@ -102,6 +102,11 @@
   flex-direction: column;
   padding: 8px;
   border-left: solid 1px #eee;
+}
+
+.CellBox textarea[disabled] {
+  background-color: var(--colorLight);
+  opacity: 0.3;
 }
 
 .ActionCellBox {

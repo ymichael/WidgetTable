@@ -4,7 +4,9 @@
 import { FieldProps } from "formik";
 import React from "react";
 import Select from "react-select";
-import { theme } from "../../shared/theme";
+import { useContext } from "react";
+import ThemeContext from "../ThemeContext";
+import { getTheme } from "../../shared/theme";
 
 interface Option {
   label: string;
@@ -26,6 +28,8 @@ export default function CustomSelect({
   options,
   isMulti = false,
 }: CustomSelectProps) {
+  const theme = getTheme(useContext(ThemeContext));
+
   const onChange = (option: Option | Option[]) => {
     form.setFieldValue(
       field.name,
@@ -54,14 +58,18 @@ export default function CustomSelect({
       placeholder={placeholder}
       options={options}
       isMulti={isMulti}
-      theme={(og) => ({
-        ...og,
-        colors: {
-          ...og.colors,
-          primary25: theme.colors.BG,
-          primary: theme.colors.PRIMARY,
-        },
-      })}
+      theme={(og) => {
+        return {
+          ...og,
+          colors: {
+            ...og.colors,
+            primary25: theme.LIGHT,
+            primary50: theme.LIGHT,
+            primary75: theme.LIGHT,
+            primary: theme.PRIMARY,
+          },
+        };
+      }}
     />
   );
 }

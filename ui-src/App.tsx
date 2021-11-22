@@ -5,6 +5,7 @@ import styles from "./App.module.css";
 
 import SchemaEditor from "./SchemaEditor";
 import RowEditor from "./RowEditor";
+import ThemeContext from "./ThemeContext";
 import Table from "./Table";
 import { Sidecar, SidecarOverlay } from "./Sidecar";
 
@@ -17,6 +18,7 @@ import {
 } from "../shared/types";
 import fractionalIndex from "../shared/fractional-indexing";
 import { assertUnreachable } from "../shared/utils";
+import { getTheme } from "../shared/theme";
 import { getAppRoute, AppRoute, RouteType } from "./router";
 
 const widgetPayload: WidgetToIFrameShowUIMessage | undefined = (window as any)
@@ -272,11 +274,21 @@ function AppPage({ route }: { route: AppRoute }) {
   }
 }
 
+const themeName = widgetPayload?.themeName || "green";
+const theme = getTheme(themeName);
+
 function App() {
+  useEffect(() => {
+    document.documentElement.style.setProperty("--colorPrimary", theme.PRIMARY);
+    document.documentElement.style.setProperty("--colorLight", theme.LIGHT);
+    document.documentElement.style.setProperty("--colorDark", theme.DARK);
+  }, []);
   return (
-    <div className={styles.App}>
-      <AppPage route={getAppRoute()} />
-    </div>
+    <ThemeContext.Provider value={themeName}>
+      <div className={styles.App}>
+        <AppPage route={getAppRoute()} />
+      </div>
+    </ThemeContext.Provider>
   );
 }
 

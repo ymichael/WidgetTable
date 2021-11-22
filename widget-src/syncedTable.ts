@@ -6,6 +6,7 @@ export default class SyncedTable {
   ROW_AUTO_INCR_KEY = "row-auto-incr-key";
   TABLE_TITLE_KEY = "table-title-key";
   TABLE_SCHEMA_KEY = "table-schema-key";
+  TABLE_THEME_KEY = "table-theme-key";
 
   // Used to track if there are any changes to rows / schema
   // to update iframe with row changes.
@@ -43,6 +44,14 @@ export default class SyncedTable {
 
   get rowsVersion(): number {
     return this.metadata.get(this.ROWS_VERSION_KEY) || 0;
+  }
+
+  get theme(): string {
+    return this.metadata.get(this.TABLE_THEME_KEY);
+  }
+
+  setTheme(theme: string): void {
+    return this.metadata.set(this.TABLE_THEME_KEY, theme);
   }
 
   private dirtyRows(): void {
