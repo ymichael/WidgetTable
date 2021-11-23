@@ -37,6 +37,11 @@ export const STICKY_SCHEMA: TableField[] = [
     fieldName: "Author",
     fieldType: FieldType.TEXT_SINGLE_LINE,
   },
+  {
+    fieldId: "+1",
+    fieldName: "+1s",
+    fieldType: FieldType.VOTE,
+  },
 ];
 
 export const STICKY_NO_AUTHOR_SCHEMA: TableField[] = [
@@ -44,6 +49,11 @@ export const STICKY_NO_AUTHOR_SCHEMA: TableField[] = [
     fieldId: "text",
     fieldName: "Sticky Text",
     fieldType: FieldType.TEXT_MULTI_LINE,
+  },
+  {
+    fieldId: "+1",
+    fieldName: "+1s",
+    fieldType: FieldType.VOTE,
   },
 ];
 

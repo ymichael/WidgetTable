@@ -1,6 +1,6 @@
 {
-  "name": "WidgetTable",
-  "id": "widget-table",
+  "name": "table",
+  "id": "table-widget",
   "api": "1.0.0",
   "editorType": ["figjam"],
   "permissions": ["currentuser"],
