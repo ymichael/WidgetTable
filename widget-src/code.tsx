@@ -9,6 +9,7 @@ import {
 import { Theme, getTheme, getRandomTheme } from "../shared/theme";
 import { Template, TEMPLATES, DEFAULT_SCHEMA } from "./constants";
 import {
+  editSvg,
   checkedSvg,
   uncheckedSvg,
   plusSvg,
@@ -561,7 +562,7 @@ function Table() {
             itemType: "action",
             tooltip: "Edit Table",
             propertyName: "editTable",
-            icon: databaseSvg,
+            icon: editSvg,
           },
           {
             itemType: "action",
