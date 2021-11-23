@@ -371,9 +371,11 @@ function TableFrame({
 function TemplateTile({
   template,
   theme,
+  syncedTable,
 }: {
   template: Template;
   theme: Theme;
+  syncedTable: SyncedTable;
 }) {
   return (
     <AutoLayout
@@ -385,6 +387,11 @@ function TemplateTile({
       verticalAlignItems="start"
       cornerRadius={8}
       fill={theme.LIGHT}
+      onClick={() => {
+        syncedTable.setTitle(template.defaultTitle);
+        syncedTable.setSchema(template.defaultSchema);
+        template.defaultRows.forEach((r) => syncedTable.appendRow(r));
+      }}
     >
       <Text fontFamily="Inter" fontWeight={800} fontSize={14} width={120}>
         {template.title}
@@ -463,9 +470,17 @@ function TablePlaceholder({
           {TEMPLATES.map((template, idx) => {
             return idx % 2 !== 0 ? null : (
               <AutoLayout key={idx} direction="horizontal" spacing={10}>
-                <TemplateTile template={template} theme={theme} />
+                <TemplateTile
+                  template={template}
+                  theme={theme}
+                  syncedTable={syncedTable}
+                />
                 {idx + 1 <= TEMPLATES.length - 1 && (
-                  <TemplateTile theme={theme} template={TEMPLATES[idx + 1]} />
+                  <TemplateTile
+                    theme={theme}
+                    template={TEMPLATES[idx + 1]}
+                    syncedTable={syncedTable}
+                  />
                 )}
               </AutoLayout>
             );
