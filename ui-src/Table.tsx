@@ -10,6 +10,7 @@ import Trash from "./icons/Trash";
 import { generateValidationSchemaFromTableSchema } from "./RowEditor";
 import { widthForFieldType, assertUnreachable } from "../shared/utils";
 import CustomSelect from "./input/CustomSelect";
+import DatePicker from "./input/DatePicker";
 import styles from "./Table.module.css";
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any) => {
@@ -204,6 +205,7 @@ function CellBox({
       style={{
         flex: `1 1 auto`,
         width: widthForFieldType(field.fieldType, true),
+        minWidth: widthForFieldType(field.fieldType, true),
       }}
     >
       {children}
@@ -216,7 +218,14 @@ function ActionCellBox({ children }: { children?: any }) {
 }
 
 function ColumnHeader({ field }: { field: TableField }) {
-  return <CellBox field={field}>{field.fieldName}</CellBox>;
+  return (
+    <CellBox field={field}>
+      {field.fieldName}
+      {field.fieldType === FieldType.CURRENCY && (
+        <span>{`(${field.fieldCurrencySymbol})`}</span>
+      )}
+    </CellBox>
+  );
 }
 
 function RowIdx({
@@ -396,6 +405,7 @@ function CellEditor({
     case FieldType.URL:
     case FieldType.EMAIL:
     case FieldType.NUMBER:
+    case FieldType.CURRENCY:
     case FieldType.TEXT_MULTI_LINE:
       return (
         <Field
@@ -416,6 +426,8 @@ function CellEditor({
       return <Field name={fieldName} type="checkbox" autoComplete="off" />;
     case FieldType.VOTE:
       return null;
+    case FieldType.DATE:
+      return <Field name={fieldName} component={DatePicker} compact={true} />;
     case FieldType.SELECT_MULTIPLE:
     case FieldType.SELECT_SINGLE:
       return (

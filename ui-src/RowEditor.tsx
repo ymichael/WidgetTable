@@ -1,12 +1,13 @@
 import * as React from "react";
 import * as yup from "yup";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field } from "formik";
 
 import { TableField, FieldType } from "../shared/types";
 import { assertUnreachable } from "../shared/utils";
 
 import { FieldRow, ButtonRow } from "./FieldRow";
 import CustomSelect from "./input/CustomSelect";
+import DatePicker from "./input/DatePicker";
 import AutoSubmitter from "./AutoSubmitter";
 
 import styles from "./RowEditor.module.css";
@@ -26,6 +27,23 @@ export function generateValidationSchemaFromTableSchema(
           [field.fieldId]: yup
             .number()
             .typeError("Please specify a valid number."),
+        });
+        break;
+      case FieldType.CURRENCY:
+        yupSchema = yupSchema.shape({
+          [field.fieldId]: yup
+            .number()
+            .typeError("Please specify a valid numerical value."),
+        });
+        break;
+      case FieldType.DATE:
+        yupSchema = yupSchema.shape({
+          [field.fieldId]: yup
+            .date()
+            .default(function () {
+              return new Date();
+            })
+            .typeError("Please specify a valid date. Eg. Nov 10 2021"),
         });
         break;
       case FieldType.EMAIL:
@@ -155,6 +173,7 @@ export function RowFieldEditor({ field }: { field: TableField }) {
     case FieldType.TEXT_SINGLE_LINE:
     case FieldType.URL:
     case FieldType.EMAIL:
+    case FieldType.CURRENCY:
     case FieldType.NUMBER:
       return (
         <FieldRow
@@ -183,6 +202,16 @@ export function RowFieldEditor({ field }: { field: TableField }) {
       );
     case FieldType.VOTE:
       return null;
+    case FieldType.DATE:
+      return (
+        <FieldRow
+          key={fieldKey}
+          fieldName={field.fieldId}
+          fieldLabel={field.fieldName}
+        >
+          <Field name={field.fieldId} component={DatePicker} />
+        </FieldRow>
+      );
     case FieldType.SELECT_MULTIPLE:
     case FieldType.SELECT_SINGLE:
       return (
@@ -199,7 +228,6 @@ export function RowFieldEditor({ field }: { field: TableField }) {
             })}
             isMulti={fieldType === FieldType.SELECT_MULTIPLE}
           />
-          <ErrorMessage name={field.fieldId} />
         </FieldRow>
       );
     default:

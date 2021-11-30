@@ -1,11 +1,14 @@
-import { TRow, Table, FieldType } from "../shared/types";
+import { TRow, FieldType, TableField } from "../shared/types";
 import fractionalIndex from "../shared/fractional-indexing";
+import { assertUnreachable } from "../shared/utils";
 
 export const FIELD_TYPE_READABLE: Record<FieldType, string> = {
   TEXT_SINGLE_LINE: "Single line text",
   TEXT_MULTI_LINE: "Multi-line text",
   URL: "URL",
   EMAIL: "Email",
+  DATE: "Date",
+  CURRENCY: "Currency",
   NUMBER: "Number",
   CHECKBOX: "Checkbox",
   VOTE: "Vote",
@@ -21,7 +24,9 @@ export const FIELD_TYPE_DESCRIPTION: Record<FieldType, string> = {
   NUMBER:
     "The number field is useful if you intend to store a numerical value.",
   URL: "The URL field can be used if you intend to store a single URL in this field. When displayed, the field will link directly to the specified value.",
-  VOTE: "The vote field is useful to enable to voting on rows. Every user is allowed to vote once.",
+  VOTE: "The vote field is useful for enabling voting on rows. Every user is allowed to vote once.",
+  DATE: "The date field is useful for values that represent dates.",
+  CURRENCY: "The currency field is useful for monetary values.",
   EMAIL:
     "The email field is useful if you intend to store a single email address in this field.",
   CHECKBOX: "The checkbox field type is useful for true / false values.",
@@ -31,41 +36,102 @@ export const FIELD_TYPE_DESCRIPTION: Record<FieldType, string> = {
     "The multi select field is similar to the single select field but allows for multiple options to be chosen.",
 };
 
-export const TEST_TABLE_SCHEMA: Table["fields"] = [
-  {
-    fieldId: "title",
-    fieldName: "Task",
-    fieldType: FieldType.TEXT_SINGLE_LINE,
-  },
-  {
-    fieldId: "desc",
-    fieldName: "Description",
-    fieldType: FieldType.TEXT_MULTI_LINE,
-  },
-  {
-    fieldId: "priority",
-    fieldName: "Priority",
-    fieldType: FieldType.SELECT_SINGLE,
-    fieldOptions: ["P0", "P1", "P2"],
-  },
-  {
-    fieldId: "ied",
-    fieldName: "IED",
-    fieldType: FieldType.NUMBER,
-    fieldPrefix: "",
-    fieldSuffix: "",
-  },
-  {
-    fieldId: "email",
-    fieldName: "Email",
-    fieldType: FieldType.VOTE,
-  },
-  {
-    fieldId: "published",
-    fieldName: "Published",
-    fieldType: FieldType.CHECKBOX,
-  },
-];
+function getTestFieldIdFromFieldType(fieldType: FieldType): string {
+  return fieldType.toLowerCase();
+}
+
+function getTestTableSchemaForField(fieldType: FieldType): TableField {
+  const commonFieldProps: Pick<TableField, "fieldId" | "fieldName"> = {
+    fieldId: getTestFieldIdFromFieldType(fieldType),
+    fieldName:
+      fieldType.charAt(0).toUpperCase() + fieldType.substr(1).toLowerCase(),
+  };
+
+  switch (fieldType) {
+    case FieldType.SELECT_SINGLE:
+    case FieldType.SELECT_MULTIPLE:
+      return {
+        ...commonFieldProps,
+        fieldType,
+        fieldOptions: ["P0", "P1", "P2"],
+      };
+    case FieldType.DATE:
+      return {
+        ...commonFieldProps,
+        fieldType,
+      };
+    case FieldType.CURRENCY:
+      return {
+        ...commonFieldProps,
+        fieldType,
+        fieldCurrencySymbol: "$",
+        fieldCurrencySymbolIsSuffix: false,
+      };
+    case FieldType.NUMBER:
+      return {
+        ...commonFieldProps,
+        fieldType,
+        fieldPrefix: "",
+        fieldSuffix: "%",
+      };
+    case FieldType.TEXT_SINGLE_LINE:
+    case FieldType.TEXT_MULTI_LINE:
+    case FieldType.VOTE:
+    case FieldType.EMAIL:
+    case FieldType.URL:
+    case FieldType.CHECKBOX:
+      return {
+        fieldType,
+        ...commonFieldProps,
+      };
+    default:
+      assertUnreachable(fieldType);
+  }
+}
+
+export const TEST_TABLE_SCHEMA: TableField[] = Object.keys(FieldType).map(
+  (k) => {
+    return getTestTableSchemaForField((FieldType as any)[k]);
+  }
+);
+
+function getTestFieldRowData(rowIdx: number): TRow["rowData"] {
+  const ret: any = {};
+  TEST_TABLE_SCHEMA.forEach((field) => {
+    const fieldId = getTestFieldIdFromFieldType(field.fieldType);
+    switch (field.fieldType) {
+      case FieldType.TEXT_SINGLE_LINE:
+        ret[fieldId] = `Test Text ${rowIdx}`;
+        break;
+      case FieldType.TEXT_MULTI_LINE:
+        ret[fieldId] = `This is a test multi-line text ${rowIdx}`;
+        break;
+      case FieldType.EMAIL:
+      case FieldType.URL:
+      case FieldType.CURRENCY:
+      case FieldType.DATE:
+        ret[fieldId] = "";
+        break;
+      case FieldType.NUMBER:
+        ret[fieldId] = rowIdx;
+        break;
+      case FieldType.CHECKBOX:
+        ret[fieldId] = rowIdx % 2 === 0;
+        break;
+      case FieldType.VOTE:
+        return;
+      case FieldType.SELECT_SINGLE:
+        ret[fieldId] = rowIdx % 2 === 0 ? "P0" : "P1";
+        break;
+      case FieldType.SELECT_MULTIPLE:
+        ret[fieldId] = rowIdx % 2 === 0 ? ["P0"] : ["P0", "P1"];
+        break;
+      default:
+        assertUnreachable(field);
+    }
+  });
+  return ret;
+}
 
 let prevId = "a0";
 
@@ -86,13 +152,7 @@ export const testTableRows = () => {
       prevId = rowId;
       return {
         rowId,
-        rowData: {
-          title: `This is a title ${idx}`,
-          desc: `This is a description ${idx}`,
-          ied: Math.max(idx % 3 || 0.5),
-          priority: "P1",
-          published: idx % 2 == 0,
-        },
+        rowData: getTestFieldRowData(idx),
       };
     });
   }

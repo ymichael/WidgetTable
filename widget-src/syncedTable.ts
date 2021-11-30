@@ -2,6 +2,10 @@ import { FieldType, TableField } from "../shared/types";
 import { TRow } from "../shared/types";
 import fractionalIndex from "../shared/fractional-indexing";
 
+type TVoteMap = {
+  [rowId: string]: { [fieldId: string]: number };
+};
+
 export default class SyncedTable {
   ROW_AUTO_INCR_KEY = "row-auto-incr-key";
   TABLE_TITLE_KEY = "table-title-key";
@@ -13,7 +17,7 @@ export default class SyncedTable {
   ROWS_VERSION_KEY = "rows-version-key";
   SCHEMA_VERSION_KEY = "schema-version-key";
 
-  private nonVoteFieldIds: Set<string>;
+  private nonVoteFieldIds: Set<string> = new Set();
 
   constructor(
     private metadata: SyncedMap<any>,
@@ -131,8 +135,8 @@ export default class SyncedTable {
     this.dirtyRows();
   }
 
-  getVotesMap(): { [rowId: string]: { [fieldId: string]: number } } {
-    const votesMap = {};
+  getVotesMap(): TVoteMap {
+    const votesMap: TVoteMap = {};
     this.votes.keys().forEach((voteKey) => {
       const { rowId, fieldId, userId } = this.fromVoteKey(voteKey);
       votesMap[rowId] = votesMap[rowId] || {};

@@ -291,6 +291,19 @@ function SchemaFieldForm({
           />
         </FieldRowSplit>
       )}
+      {values.fieldType === FieldType.CURRENCY && (
+        <>
+          <FieldRow
+            fieldName={`${fieldPrefix}.fieldCurrencySymbol`}
+            fieldLabel="Currency Symbol"
+          />
+          <FieldRow
+            fieldName={`${fieldPrefix}.fieldCurrencySymbolIsSuffix`}
+            fieldLabel="Currency Symbol after value"
+            fieldType="checkbox"
+          />
+        </>
+      )}
     </div>
   );
 }

@@ -17,10 +17,13 @@ export function widthForFieldType(
       case FieldType.TEXT_MULTI_LINE:
         return 240;
       case FieldType.NUMBER:
+      case FieldType.CURRENCY:
       case FieldType.CHECKBOX:
         return 60;
+      case FieldType.DATE:
       case FieldType.SELECT_MULTIPLE:
       case FieldType.SELECT_SINGLE:
+        return 150;
       case FieldType.VOTE:
       case FieldType.URL:
       case FieldType.EMAIL:
@@ -39,6 +42,8 @@ export function widthForFieldType(
     case FieldType.CHECKBOX:
     case FieldType.NUMBER:
     case FieldType.VOTE:
+    case FieldType.DATE:
+    case FieldType.CURRENCY:
       return 60;
     case FieldType.URL:
     case FieldType.EMAIL:

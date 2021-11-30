@@ -8,6 +8,8 @@ export enum FieldType {
   EMAIL = "EMAIL",
   NUMBER = "NUMBER",
   VOTE = "VOTE",
+  CURRENCY = "CURRENCY",
+  DATE = "DATE",
 }
 
 export type TableField =
@@ -28,6 +30,18 @@ export type TableField =
       fieldType: FieldType.NUMBER;
       fieldPrefix: string;
       fieldSuffix: string;
+    }
+  | {
+      fieldId: string;
+      fieldName: string;
+      fieldType: FieldType.DATE;
+    }
+  | {
+      fieldId: string;
+      fieldName: string;
+      fieldType: FieldType.CURRENCY;
+      fieldCurrencySymbol: string;
+      fieldCurrencySymbolIsSuffix: boolean;
     }
   | {
       fieldId: string;

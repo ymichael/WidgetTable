@@ -4,8 +4,7 @@
     "jsxFactory": "figma.widget.h",
     "target": "es6",
     "lib": ["es6"],
-    "typeRoots": [
-      "../node_modules/@figma"
-    ]
+    "strict": true,
+    "typeRoots": ["../node_modules/@figma"]
   }
 }

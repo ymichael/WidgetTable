@@ -178,7 +178,7 @@ function Pill({
   onClick,
   theme,
 }: {
-  key?: string;
+  key?: any;
   value: any;
   theme: Theme;
   onClick?: () => void;
@@ -227,7 +227,7 @@ function CellValue({
     if (fieldType === FieldType.SELECT_MULTIPLE) {
       return (
         <AutoLayout spacing={5} width={widthForFieldType(fieldType)}>
-          {value?.map((v, idx) => (
+          {value?.map((v: string, idx: number) => (
             <Pill key={idx} value={v} theme={theme} />
           ))}
         </AutoLayout>
@@ -242,6 +242,10 @@ function CellValue({
           value={value || 0}
           theme={theme}
           onClick={() => {
+            if (!figma.currentUser?.id) {
+              figma.notify("You must be logged in to vote.");
+              return;
+            }
             syncedTable.toggleVote({
               rowId: rowKey,
               fieldId,
@@ -279,8 +283,18 @@ function CellValue({
   } else {
     additionalProps["onClick"] = onEditRow;
   }
-
-  const suffixOrPrefix = value && fieldType === FieldType.NUMBER;
+  const isNumber = fieldType === FieldType.NUMBER;
+  const isCurrency = fieldType === FieldType.CURRENCY;
+  const fieldPrefix =
+    (isNumber && field.fieldPrefix ? field.fieldPrefix : "") ||
+    (isCurrency && !field.fieldCurrencySymbolIsSuffix
+      ? field.fieldCurrencySymbol
+      : "");
+  const fieldSuffix =
+    (isNumber && field.fieldSuffix ? field.fieldSuffix : "") ||
+    (isCurrency && field.fieldCurrencySymbolIsSuffix
+      ? field.fieldCurrencySymbol
+      : "");
   return (
     <Text
       fontSize={12}
@@ -290,9 +304,9 @@ function CellValue({
       fill="#2A2A2A"
       {...additionalProps}
     >
-      {suffixOrPrefix && field.fieldPrefix ? field.fieldPrefix : ""}
+      {value && fieldPrefix ? fieldPrefix : ""}
       {value ?? ""}
-      {suffixOrPrefix && field.fieldSuffix ? field.fieldSuffix : ""}
+      {value && fieldSuffix ? fieldSuffix : ""}
     </Text>
   );
 }

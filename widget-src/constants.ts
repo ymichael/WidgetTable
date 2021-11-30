@@ -158,9 +158,9 @@ export const TEMPLATES: Template[] = [
       {
         fieldId: "price",
         fieldName: "Price",
-        fieldType: FieldType.NUMBER,
-        fieldSuffix: "",
-        fieldPrefix: "$",
+        fieldType: FieldType.CURRENCY,
+        fieldCurrencySymbol: "$",
+        fieldCurrencySymbolIsSuffix: false,
       },
     ],
     defaultRows: [
