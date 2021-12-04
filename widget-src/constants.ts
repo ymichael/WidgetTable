@@ -1,10 +1,11 @@
-import { TRow, TableField, FieldType } from "../shared/types";
+import { TRow, TableField, SortOrder, FieldType } from "../shared/types";
 
 export type Template = {
   title: string;
   description: string;
   defaultTitle: string;
   defaultSchema: TableField[];
+  defaultSortOrder: SortOrder;
   defaultRows: TRow["rowData"][];
 };
 
@@ -62,6 +63,10 @@ export const TEMPLATES: Template[] = [
     title: "Task Management",
     defaultTitle: "Tasks",
     description: "Tasks, priorities and completion status",
+    defaultSortOrder: {
+      fieldId: "priority",
+      reverse: false,
+    },
     defaultSchema: [
       {
         fieldId: "title",
@@ -110,6 +115,10 @@ export const TEMPLATES: Template[] = [
     title: "Poll / Voting",
     description: "Collect +1s on each row, great for Q&A and ad-hoc polls",
     defaultTitle: "Questions",
+    defaultSortOrder: {
+      fieldId: "+1",
+      reverse: true,
+    },
     defaultSchema: [
       {
         fieldId: "question",
@@ -137,6 +146,7 @@ export const TEMPLATES: Template[] = [
     title: "Shopping/Inventory List",
     description: "Item, description, quanty & price",
     defaultTitle: "Shopping List",
+    defaultSortOrder: null,
     defaultSchema: [
       {
         fieldId: "item",
@@ -201,6 +211,7 @@ export const TEMPLATES: Template[] = [
     title: "Contact List / CRM",
     description: "Name, pronouns, company, email",
     defaultTitle: "Customers",
+    defaultSortOrder: null,
     defaultSchema: [
       {
         fieldId: "name",

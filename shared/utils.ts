@@ -59,19 +59,42 @@ export function sortRows(
   sortOrder: SortOrder,
   fields: TableField[]
 ): TRow[] {
-  if (
-    !sortOrder ||
-    !fields.some((field) => field.fieldId === sortOrder.fieldId)
-  ) {
+  if (!sortOrder) {
     return rows;
   }
+
+  const field = fields.find((field) => field.fieldId === sortOrder.fieldId);
+  if (!field) {
+    return rows;
+  }
+
   const rowsCopy = [...rows];
   rowsCopy.sort((a, b) => {
     let aVal = a.rowData[sortOrder.fieldId];
     let bVal = b.rowData[sortOrder.fieldId];
-    if (typeof aVal !== "number") {
-      aVal += "";
-      bVal += "";
+    switch (field.fieldType) {
+      case FieldType.TEXT_MULTI_LINE:
+      case FieldType.TEXT_SINGLE_LINE:
+      case FieldType.DATE:
+      case FieldType.SELECT_MULTIPLE:
+      case FieldType.SELECT_SINGLE:
+      case FieldType.URL:
+      case FieldType.EMAIL:
+        aVal = (aVal || "") + "";
+        bVal = (bVal || "") + "";
+        break;
+      case FieldType.NUMBER:
+      case FieldType.CURRENCY:
+      case FieldType.VOTE:
+        aVal = aVal || 0;
+        bVal = bVal || 0;
+        break;
+      case FieldType.CHECKBOX:
+        aVal = !!aVal;
+        bVal = !!bVal;
+        break;
+      default:
+        assertUnreachable(field);
     }
     if (aVal < bVal) {
       return sortOrder.reverse ? 1 : -1;

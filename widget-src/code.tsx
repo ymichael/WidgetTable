@@ -431,6 +431,7 @@ function TemplateTile({
       onClick={() => {
         syncedTable.setTitle(template.defaultTitle);
         syncedTable.setSchema(template.defaultSchema);
+        syncedTable.setSortOrder(template.defaultSortOrder);
         template.defaultRows.forEach((r) => syncedTable.appendRow(r));
       }}
     >
