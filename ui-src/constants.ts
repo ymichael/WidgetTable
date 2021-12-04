@@ -89,11 +89,15 @@ function getTestTableSchemaForField(fieldType: FieldType): TableField {
   }
 }
 
-export const TEST_TABLE_SCHEMA: TableField[] = Object.keys(FieldType).map(
-  (k) => {
-    return getTestTableSchemaForField((FieldType as any)[k]);
-  }
-);
+const TEST_TABLE_SCHEMA: TableField[] = Object.keys(FieldType).map((k) => {
+  return getTestTableSchemaForField((FieldType as any)[k]);
+});
+
+export const TEST_TABLE = {
+  name: "Test Table",
+  theme: "red",
+  fields: TEST_TABLE_SCHEMA,
+};
 
 function getTestFieldRowData(rowIdx: number): TRow["rowData"] {
   const ret: any = {};

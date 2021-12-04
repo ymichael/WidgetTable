@@ -210,4 +210,11 @@ export default class SyncedTable {
       return [k, rowData];
     });
   }
+
+  getRowsArr(): TRow[] {
+    return this.getRows().map(([rowKey, row]) => ({
+      rowId: rowKey,
+      rowData: row,
+    }));
+  }
 }

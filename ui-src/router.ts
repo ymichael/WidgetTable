@@ -1,5 +1,5 @@
-import { TRow, TableField, WidgetToIFrameShowUIMessage } from "../shared/types";
-import { TEST_TABLE_SCHEMA, testTableRows } from "./constants";
+import { TRow, Table, WidgetToIFrameShowUIMessage } from "../shared/types";
+import { TEST_TABLE, testTableRows } from "./constants";
 
 export enum RouteType {
   SCHEMA_EDITOR,
@@ -7,7 +7,7 @@ export enum RouteType {
   FULL_TABLE,
 }
 
-export type AppRoute = { title: string; tableSchema: TableField[] } & (
+export type AppRoute = { table: Table } & (
   | {
       type: RouteType.SCHEMA_EDITOR;
     }
@@ -35,29 +35,25 @@ export function getAppRoute(): AppRoute {
       case "FULL_TABLE":
         return {
           type: RouteType.FULL_TABLE,
-          tableSchema: widgetPayload.fields,
-          title: widgetPayload.title,
+          table: widgetPayload.table,
           rows: widgetPayload.rows,
         };
       case "EDIT_SCHEMA":
         return {
           type: RouteType.SCHEMA_EDITOR,
-          title: widgetPayload.title,
-          tableSchema: widgetPayload.fields,
+          table: widgetPayload.table,
         };
       case "NEW_ROW":
         return {
           type: RouteType.ROW_EDITOR,
+          table: widgetPayload.table,
           isEdit: false,
-          title: widgetPayload.title,
-          tableSchema: widgetPayload.fields,
         };
       case "EDIT_ROW":
         return {
           type: RouteType.ROW_EDITOR,
+          table: widgetPayload.table,
           isEdit: true,
-          tableSchema: widgetPayload.fields,
-          title: widgetPayload.title,
           row: widgetPayload.row,
         };
     }
@@ -65,23 +61,20 @@ export function getAppRoute(): AppRoute {
     if (/schema=1/.test(window.location.search)) {
       return {
         type: RouteType.SCHEMA_EDITOR,
-        tableSchema: TEST_TABLE_SCHEMA,
-        title: "Test Table",
+        table: TEST_TABLE,
       };
     }
     if (/editor=1/.test(window.location.search)) {
       return {
         type: RouteType.ROW_EDITOR,
-        tableSchema: TEST_TABLE_SCHEMA,
-        title: "Test Table",
+        table: TEST_TABLE,
         isEdit: false,
       };
     }
   }
   return {
     type: RouteType.FULL_TABLE,
-    title: "Test Table",
-    tableSchema: TEST_TABLE_SCHEMA,
+    table: TEST_TABLE,
     rows: testTableRows(),
   };
 }

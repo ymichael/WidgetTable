@@ -28,9 +28,9 @@ function AppPage({ route }: { route: AppRoute }) {
   const [rows, setRows] = useState<TRow[]>(
     route.type === RouteType.FULL_TABLE ? route.rows : []
   );
-  const [title, setTitle] = useState<string>(route.title);
+  const [title, setTitle] = useState<string>(route.table.name);
   const [tableSchema, setTableSchema] = useState<TableField[]>(
-    route.tableSchema
+    route.table.fields
   );
   const [showSidecar, setShowSidecar] = useState<boolean>(false);
 
@@ -274,7 +274,7 @@ function AppPage({ route }: { route: AppRoute }) {
   }
 }
 
-const themeName = widgetPayload?.themeName || "green";
+const themeName = widgetPayload?.table.theme || "green";
 const theme = getTheme(themeName);
 
 function App() {

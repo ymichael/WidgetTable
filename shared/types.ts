@@ -52,6 +52,7 @@ export type TableField =
 
 export type Table = {
   name: string;
+  theme: string;
   fields: TableField[];
 };
 
@@ -75,9 +76,7 @@ export type WidgetToIFramePostMessage =
     };
 
 export type WidgetToIFrameShowUIMessage = {
-  fields: TableField[];
-  title: string;
-  themeName: string;
+  table: Table;
 } & (
   | {
       type: "EDIT_SCHEMA";

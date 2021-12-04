@@ -1,6 +1,7 @@
 import {
   TableField,
   FieldType,
+  Table,
   TRow,
   IFrameToWidgetMessage,
   WidgetToIFramePostMessage,
@@ -41,18 +42,18 @@ const IFRAME_WIDTH = 800;
 
 function getInitialSizeForPayload({
   type,
-  fields,
+  table,
 }: WidgetToIFrameShowUIMessage): [number, number] {
   switch (type) {
     case "EDIT_SCHEMA":
     case "FULL_TABLE":
-      const fieldWidthSum = fields.reduce(
+      const fieldWidthSum = table.fields.reduce(
         (acc, f) => widthForFieldType(f.fieldType, true /* isForm */) + acc,
         0
       );
       return [500 + fieldWidthSum, 600];
     default:
-      return [400, Math.min(200 + fields.length * 100, 500)];
+      return [400, Math.min(200 + table.fields.length * 100, 500)];
   }
 }
 
@@ -447,9 +448,11 @@ function TablePlaceholder({
               syncedTable.setSchema(DEFAULT_SCHEMA);
               return showUIWithPayload({
                 type: "EDIT_SCHEMA",
-                title: syncedTable.getTitle(),
-                themeName: theme.name,
-                fields: DEFAULT_SCHEMA,
+                table: {
+                  name: syncedTable.getTitle(),
+                  theme: theme.name,
+                  fields: DEFAULT_SCHEMA,
+                },
               });
             }}
           >
@@ -520,6 +523,11 @@ function Table() {
   let rowsVersion = syncedTable.rowsVersion;
   let schemaVersion = syncedTable.schemaVersion;
   const theme = syncedTable.theme ? getTheme(syncedTable.theme) : randomTheme;
+  const table: Table = {
+    name: syncedTable.getTitle(),
+    theme: theme.name,
+    fields: tableSchema,
+  };
 
   useEffect(() => {
     if (!syncedTable.theme) {
@@ -532,10 +540,7 @@ function Table() {
         rowsVersion = syncedTable.rowsVersion;
         const updateRowsMsg: WidgetToIFramePostMessage = {
           type: "UPDATE_ROWS",
-          rows: syncedTable.getRows().map(([rowKey, row]) => ({
-            rowId: rowKey,
-            rowData: row,
-          })),
+          rows: syncedTable.getRowsArr(),
         };
         figma.ui.postMessage(updateRowsMsg);
         syncedTable.forceRerender();
@@ -587,30 +592,15 @@ function Table() {
         ],
     ({ propertyName }) => {
       if (propertyName === "editSchema") {
-        return showUIWithPayload({
-          type: "EDIT_SCHEMA",
-          title: tableTitle,
-          themeName: theme.name,
-          fields: tableSchema,
-        });
+        return showUIWithPayload({ type: "EDIT_SCHEMA", table });
       } else if (propertyName === "editTable") {
         return showUIWithPayload({
           type: "FULL_TABLE",
-          fields: tableSchema,
-          rows: syncedTable.getRows().map(([rowKey, row]) => ({
-            rowId: rowKey,
-            rowData: row,
-          })),
-          themeName: theme.name,
-          title: tableTitle,
+          table,
+          rows: syncedTable.getRowsArr(),
         });
       } else if (propertyName === "newRow") {
-        return showUIWithPayload({
-          type: "NEW_ROW",
-          title: tableTitle,
-          themeName: theme.name,
-          fields: tableSchema,
-        });
+        return showUIWithPayload({ type: "NEW_ROW", table });
       } else if (propertyName === "deleteAllRows") {
         syncedTable.deleteAllRows();
       }
@@ -633,13 +623,8 @@ function Table() {
           onClick={() => {
             return showUIWithPayload({
               type: "FULL_TABLE",
-              title: tableTitle,
-              rows: syncedTable.getRows().map(([rowKey, row]) => ({
-                rowId: rowKey,
-                rowData: row,
-              })),
-              themeName: theme.name,
-              fields: tableSchema,
+              rows: syncedTable.getRowsArr(),
+              table,
             });
           }}
         >
@@ -669,13 +654,8 @@ function Table() {
           const onEditRow = () => {
             return showUIWithPayload({
               type: "EDIT_ROW",
-              title: tableTitle,
-              fields: tableSchema,
-              themeName: theme.name,
-              row: {
-                rowId: rowKey,
-                rowData: row,
-              },
+              table,
+              row: { rowId: rowKey, rowData: row },
             });
           };
           return (
@@ -701,12 +681,7 @@ function Table() {
       <ButtonRow
         theme={theme}
         onClick={() => {
-          return showUIWithPayload({
-            type: "NEW_ROW",
-            title: tableTitle,
-            fields: tableSchema,
-            themeName: theme.name,
-          });
+          return showUIWithPayload({ type: "NEW_ROW", table });
         }}
       >
         New Row
