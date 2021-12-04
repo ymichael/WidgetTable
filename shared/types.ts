@@ -50,9 +50,17 @@ export type TableField =
       fieldOptions: string[];
     };
 
+export type SortOrder =
+  | {
+      fieldId: string;
+      reverse: boolean;
+    }
+  | undefined;
+
 export type Table = {
   name: string;
   theme: string;
+  sortOrder?: SortOrder;
   fields: TableField[];
 };
 

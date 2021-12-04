@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { isEqual } from "lodash";
 import styles from "./App.module.css";
 
@@ -12,6 +12,7 @@ import { Sidecar, SidecarOverlay } from "./Sidecar";
 import {
   TRow,
   TableField,
+  SortOrder,
   WidgetToIFrameShowUIMessage,
   WidgetToIFramePostMessage,
   IFrameToWidgetMessage,
@@ -29,10 +30,36 @@ function AppPage({ route }: { route: AppRoute }) {
     route.type === RouteType.FULL_TABLE ? route.rows : []
   );
   const [title, setTitle] = useState<string>(route.table.name);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(route.table.sortOrder);
   const [tableSchema, setTableSchema] = useState<TableField[]>(
     route.table.fields
   );
   const [showSidecar, setShowSidecar] = useState<boolean>(false);
+  const rowsSorted = useMemo<TRow[]>(() => {
+    if (
+      !sortOrder ||
+      !tableSchema.some((field) => field.fieldId === sortOrder.fieldId)
+    ) {
+      return rows;
+    }
+    const rowsCopy = [...rows];
+    rowsCopy.sort((a, b) => {
+      let aVal = a.rowData[sortOrder.fieldId];
+      let bVal = b.rowData[sortOrder.fieldId];
+      if (typeof aVal !== "number") {
+        aVal += "";
+        bVal += "";
+      }
+      if (aVal < bVal) {
+        return sortOrder.reverse ? 1 : -1;
+      }
+      if (bVal < aVal) {
+        return sortOrder.reverse ? -1 : 1;
+      }
+      return 0;
+    });
+    return rowsCopy;
+  }, [rows, sortOrder, tableSchema]);
 
   useEffect(() => {
     if (!widgetPayload) {
@@ -139,7 +166,11 @@ function AppPage({ route }: { route: AppRoute }) {
           <Table
             title={title}
             tableSchema={tableSchema}
-            rows={rows}
+            rows={rowsSorted}
+            sortOrder={sortOrder}
+            onUpdateSortOrder={(sortOrder) => {
+              setSortOrder(sortOrder);
+            }}
             onEditTitle={(name) => {
               setTitle(name);
               if (!!widgetPayload) {

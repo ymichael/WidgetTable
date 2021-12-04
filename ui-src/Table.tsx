@@ -3,7 +3,7 @@ import cx from "classnames";
 import { useCallback, useMemo } from "react";
 import { Formik, Form, Field, useField } from "formik";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { TableField, FieldType, TRow } from "../shared/types";
+import { SortOrder, TableField, FieldType, TRow } from "../shared/types";
 import AutoSubmitter from "./AutoSubmitter";
 import Gear from "./icons/Gear";
 import Trash from "./icons/Trash";
@@ -29,6 +29,7 @@ function shouldSkipField(field: TableField): boolean {
 export default function Table({
   title,
   tableSchema,
+  sortOrder,
   rows,
   onEditTitle,
   onRowEdit,
@@ -36,9 +37,11 @@ export default function Table({
   onAppendRow,
   onRowReorder,
   onShowSidecar,
+  onUpdateSortOrder,
 }: {
   title: string;
   tableSchema: TableField[];
+  sortOrder: SortOrder;
   rows: TRow[];
   onRowEdit: (rowId: TRow["rowId"], v: TRow["rowData"]) => void;
   onDeleteRow: (rowId: TRow["rowId"]) => void;
@@ -50,6 +53,7 @@ export default function Table({
     beforeRowId: TRow["rowId"] | null;
     afterRowId: TRow["rowId"] | null;
   }) => void;
+  onUpdateSortOrder: (order: SortOrder) => void;
 }) {
   const rowById = useMemo(() => {
     const ret: { [key: string]: TRow } = {};
@@ -83,7 +87,14 @@ export default function Table({
                 if (shouldSkipField(field)) {
                   return null;
                 }
-                return <ColumnHeader key={field.fieldId} field={field} />;
+                return (
+                  <ColumnHeader
+                    key={field.fieldId}
+                    field={field}
+                    sortOrder={sortOrder}
+                    onUpdateSortOrder={onUpdateSortOrder}
+                  />
+                );
               })}
               <ActionCellBox></ActionCellBox>
             </div>
@@ -193,17 +204,25 @@ function TableTitle({
 function CellBox({
   field,
   children,
+  flexDirection = "row",
   isError = false,
+  onClick = undefined,
 }: {
   field: TableField;
+  flexDirection?: "row" | "column";
   isError?: boolean;
   children: any;
+  onClick?: () => void;
 }) {
   return (
     <div
+      onClick={onClick}
       className={cx(styles.CellBox, isError && styles.CellBoxError)}
       style={{
         flex: `1 1 auto`,
+        flexDirection,
+        overflow: "hidden",
+        flexWrap: "wrap",
         width: widthForFieldType(field.fieldType, true),
         minWidth: widthForFieldType(field.fieldType, true),
       }}
@@ -217,13 +236,37 @@ function ActionCellBox({ children }: { children?: any }) {
   return <div className={styles.ActionCellBox}>{children}</div>;
 }
 
-function ColumnHeader({ field }: { field: TableField }) {
+function ColumnHeader({
+  field,
+  sortOrder,
+  onUpdateSortOrder,
+}: {
+  field: TableField;
+  sortOrder: SortOrder;
+  onUpdateSortOrder: (order: SortOrder) => void;
+}) {
+  const isSortedByField = sortOrder?.fieldId === field.fieldId;
   return (
-    <CellBox field={field}>
+    <CellBox
+      field={field}
+      flexDirection="row"
+      onClick={() => {
+        if (isSortedByField) {
+          if (sortOrder.reverse) {
+            onUpdateSortOrder(undefined);
+          } else {
+            onUpdateSortOrder({ fieldId: field.fieldId, reverse: true });
+          }
+        } else {
+          onUpdateSortOrder({ fieldId: field.fieldId, reverse: false });
+        }
+      }}
+    >
       {field.fieldName}
       {field.fieldType === FieldType.CURRENCY && (
         <span>{`(${field.fieldCurrencySymbol})`}</span>
       )}
+      {isSortedByField && <span>&nbsp;{sortOrder?.reverse ? "↑" : "↓"}</span>}
     </CellBox>
   );
 }
