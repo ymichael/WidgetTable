@@ -96,6 +96,7 @@ const TEST_TABLE_SCHEMA: TableField[] = Object.keys(FieldType).map((k) => {
 export const TEST_TABLE = {
   name: "Test Table",
   theme: "red",
+  sortOrder: null,
   fields: TEST_TABLE_SCHEMA,
 };
 

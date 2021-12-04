@@ -18,7 +18,7 @@ import {
   IFrameToWidgetMessage,
 } from "../shared/types";
 import fractionalIndex from "../shared/fractional-indexing";
-import { assertUnreachable } from "../shared/utils";
+import { assertUnreachable, sortRows } from "../shared/utils";
 import { getTheme } from "../shared/theme";
 import { getAppRoute, AppRoute, RouteType } from "./router";
 
@@ -30,35 +30,15 @@ function AppPage({ route }: { route: AppRoute }) {
     route.type === RouteType.FULL_TABLE ? route.rows : []
   );
   const [title, setTitle] = useState<string>(route.table.name);
-  const [sortOrder, setSortOrder] = useState<SortOrder>(route.table.sortOrder);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(
+    route.table.sortOrder ?? null
+  );
   const [tableSchema, setTableSchema] = useState<TableField[]>(
     route.table.fields
   );
   const [showSidecar, setShowSidecar] = useState<boolean>(false);
   const rowsSorted = useMemo<TRow[]>(() => {
-    if (
-      !sortOrder ||
-      !tableSchema.some((field) => field.fieldId === sortOrder.fieldId)
-    ) {
-      return rows;
-    }
-    const rowsCopy = [...rows];
-    rowsCopy.sort((a, b) => {
-      let aVal = a.rowData[sortOrder.fieldId];
-      let bVal = b.rowData[sortOrder.fieldId];
-      if (typeof aVal !== "number") {
-        aVal += "";
-        bVal += "";
-      }
-      if (aVal < bVal) {
-        return sortOrder.reverse ? 1 : -1;
-      }
-      if (bVal < aVal) {
-        return sortOrder.reverse ? -1 : 1;
-      }
-      return 0;
-    });
-    return rowsCopy;
+    return sortRows(rows, sortOrder, tableSchema);
   }, [rows, sortOrder, tableSchema]);
 
   useEffect(() => {
@@ -170,6 +150,15 @@ function AppPage({ route }: { route: AppRoute }) {
             sortOrder={sortOrder}
             onUpdateSortOrder={(sortOrder) => {
               setSortOrder(sortOrder);
+              if (!!widgetPayload) {
+                const payload: IFrameToWidgetMessage = {
+                  type: "UPDATE_SORT_ORDER",
+                  sortOrder,
+                };
+                parent?.postMessage({ pluginMessage: payload }, "*");
+              } else {
+                console.log({ sortOrder });
+              }
             }}
             onEditTitle={(name) => {
               setTitle(name);

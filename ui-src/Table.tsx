@@ -253,7 +253,7 @@ function ColumnHeader({
       onClick={() => {
         if (isSortedByField) {
           if (sortOrder.reverse) {
-            onUpdateSortOrder(undefined);
+            onUpdateSortOrder(null);
           } else {
             onUpdateSortOrder({ fieldId: field.fieldId, reverse: true });
           }

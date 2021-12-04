@@ -1,6 +1,7 @@
-import { FieldType, TableField } from "../shared/types";
+import { SortOrder, FieldType, TableField } from "../shared/types";
 import { TRow } from "../shared/types";
 import fractionalIndex from "../shared/fractional-indexing";
+import { sortRows } from "../shared/utils";
 
 type TVoteMap = {
   [rowId: string]: { [fieldId: string]: number };
@@ -11,6 +12,7 @@ export default class SyncedTable {
   TABLE_TITLE_KEY = "table-title-key";
   TABLE_SCHEMA_KEY = "table-schema-key";
   TABLE_THEME_KEY = "table-theme-key";
+  TABLE_SORT_KEY = "table-sort-key";
 
   // Used to track if there are any changes to rows / schema
   // to update iframe with row changes.
@@ -60,6 +62,14 @@ export default class SyncedTable {
 
   private dirtyRows(): void {
     this.metadata.set(this.ROWS_VERSION_KEY, this.rowsVersion + 1);
+  }
+
+  get sortOrder(): SortOrder {
+    return this.metadata.get(this.TABLE_SORT_KEY) ?? null;
+  }
+
+  setSortOrder(sortOrder: SortOrder): void {
+    this.metadata.set(this.TABLE_SORT_KEY, sortOrder);
   }
 
   get schemaVersion(): number {
@@ -211,10 +221,11 @@ export default class SyncedTable {
     });
   }
 
-  getRowsArr(): TRow[] {
-    return this.getRows().map(([rowKey, row]) => ({
+  getRowsSorted(): TRow[] {
+    const rows = this.getRows().map(([rowKey, row]) => ({
       rowId: rowKey,
       rowData: row,
     }));
+    return sortRows(rows, this.sortOrder, this.schema);
   }
 }

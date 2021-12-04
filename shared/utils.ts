@@ -1,4 +1,4 @@
-import { FieldType } from "./types";
+import { TableField, SortOrder, TRow, FieldType } from "./types";
 
 export function assertUnreachable(x: never): never {
   throw new Error("Didn't expect to get here");
@@ -52,4 +52,34 @@ export function widthForFieldType(
     default:
       assertUnreachable(fieldType);
   }
+}
+
+export function sortRows(
+  rows: TRow[],
+  sortOrder: SortOrder,
+  fields: TableField[]
+): TRow[] {
+  if (
+    !sortOrder ||
+    !fields.some((field) => field.fieldId === sortOrder.fieldId)
+  ) {
+    return rows;
+  }
+  const rowsCopy = [...rows];
+  rowsCopy.sort((a, b) => {
+    let aVal = a.rowData[sortOrder.fieldId];
+    let bVal = b.rowData[sortOrder.fieldId];
+    if (typeof aVal !== "number") {
+      aVal += "";
+      bVal += "";
+    }
+    if (aVal < bVal) {
+      return sortOrder.reverse ? 1 : -1;
+    }
+    if (bVal < aVal) {
+      return sortOrder.reverse ? -1 : 1;
+    }
+    return 0;
+  });
+  return rowsCopy;
 }

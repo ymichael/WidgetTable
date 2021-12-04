@@ -3,6 +3,7 @@ import {
   FieldType,
   Table,
   TRow,
+  SortOrder,
   IFrameToWidgetMessage,
   WidgetToIFramePostMessage,
   WidgetToIFrameShowUIMessage,
@@ -110,6 +111,9 @@ const genIFrameToWidgetMessageHandler = (syncedTable: SyncedTable) => {
           figma.closePlugin();
         }
         break;
+      case "UPDATE_SORT_ORDER":
+        syncedTable.setSortOrder(msg.sortOrder);
+        break;
       case "REORDER_ROW":
         const newRowId = syncedTable.moveRow(msg.rowId, msg.newRowId);
         break;
@@ -133,27 +137,48 @@ const genIFrameToWidgetMessageHandler = (syncedTable: SyncedTable) => {
 };
 
 function ColumnHeader({
-  fieldType,
-  fieldName,
+  field,
+  sortOrder,
+  syncedTable,
 }: {
   key: any;
-  fieldType: FieldType;
-  fieldName: string;
+  field: TableField;
+  syncedTable: SyncedTable;
+  sortOrder: SortOrder;
 }) {
+  const isSortedByField = sortOrder?.fieldId === field.fieldId;
+  const strBuilder = [
+    field.fieldName,
+    field.fieldType === FieldType.CURRENCY
+      ? ` (${field.fieldCurrencySymbol})`
+      : "",
+    isSortedByField ? (sortOrder?.reverse ? " ↑" : " ↓") : "",
+  ];
   return (
     <Text
       fontSize={10}
       fontFamily="Inter"
       fontWeight="semi-bold"
       horizontalAlignText="left"
-      width={widthForFieldType(fieldType)}
+      width={widthForFieldType(field.fieldType)}
       fill={{
         type: "solid",
         color: "#2A2A2A",
         opacity: 0.5,
       }}
+      onClick={() => {
+        if (isSortedByField) {
+          if (sortOrder.reverse) {
+            syncedTable.setSortOrder(null);
+          } else {
+            syncedTable.setSortOrder({ fieldId: field.fieldId, reverse: true });
+          }
+        } else {
+          syncedTable.setSortOrder({ fieldId: field.fieldId, reverse: false });
+        }
+      }}
     >
-      {fieldName}
+      {strBuilder.join("")}
     </Text>
   );
 }
@@ -450,6 +475,7 @@ function TablePlaceholder({
                 type: "EDIT_SCHEMA",
                 table: {
                   name: syncedTable.getTitle(),
+                  sortOrder: syncedTable.sortOrder,
                   theme: theme.name,
                   fields: DEFAULT_SCHEMA,
                 },
@@ -525,6 +551,7 @@ function Table() {
   const theme = syncedTable.theme ? getTheme(syncedTable.theme) : randomTheme;
   const table: Table = {
     name: syncedTable.getTitle(),
+    sortOrder: syncedTable.sortOrder,
     theme: theme.name,
     fields: tableSchema,
   };
@@ -540,7 +567,7 @@ function Table() {
         rowsVersion = syncedTable.rowsVersion;
         const updateRowsMsg: WidgetToIFramePostMessage = {
           type: "UPDATE_ROWS",
-          rows: syncedTable.getRowsArr(),
+          rows: syncedTable.getRowsSorted(),
         };
         figma.ui.postMessage(updateRowsMsg);
         syncedTable.forceRerender();
@@ -597,7 +624,7 @@ function Table() {
         return showUIWithPayload({
           type: "FULL_TABLE",
           table,
-          rows: syncedTable.getRowsArr(),
+          rows: syncedTable.getRowsSorted(),
         });
       } else if (propertyName === "newRow") {
         return showUIWithPayload({ type: "NEW_ROW", table });
@@ -623,7 +650,7 @@ function Table() {
           onClick={() => {
             return showUIWithPayload({
               type: "FULL_TABLE",
-              rows: syncedTable.getRowsArr(),
+              rows: syncedTable.getRowsSorted(),
               table,
             });
           }}
@@ -638,8 +665,9 @@ function Table() {
           return (
             <ColumnHeader
               key={field.fieldId}
-              fieldType={field.fieldType}
-              fieldName={field.fieldName}
+              field={field}
+              syncedTable={syncedTable}
+              sortOrder={syncedTable.sortOrder}
             />
           );
         })}
@@ -650,16 +678,16 @@ function Table() {
         padding={{ bottom: 20, right: 10 }}
       >
         <Frame name="Spacer" width={200} height={1} />
-        {syncedTable.getRows().map(([rowKey, row], idx) => {
+        {syncedTable.getRowsSorted().map(({ rowId, rowData }, idx) => {
           const onEditRow = () => {
             return showUIWithPayload({
               type: "EDIT_ROW",
               table,
-              row: { rowId: rowKey, rowData: row },
+              row: { rowId, rowData },
             });
           };
           return (
-            <AutoLayout spacing={SPACING_HORIZONTAL} key={rowKey}>
+            <AutoLayout spacing={SPACING_HORIZONTAL} key={rowId}>
               <RowIdx idx={idx + 1} />
               {tableSchema.map((field) => {
                 return (
@@ -668,9 +696,9 @@ function Table() {
                     onEditRow={onEditRow}
                     syncedTable={syncedTable}
                     key={field.fieldId}
-                    rowKey={rowKey}
+                    rowKey={rowId}
                     field={field}
-                    value={row[field.fieldId]}
+                    value={rowData[field.fieldId]}
                   />
                 );
               })}

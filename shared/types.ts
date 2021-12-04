@@ -50,17 +50,15 @@ export type TableField =
       fieldOptions: string[];
     };
 
-export type SortOrder =
-  | {
-      fieldId: string;
-      reverse: boolean;
-    }
-  | undefined;
+export type SortOrder = {
+  fieldId: string;
+  reverse: boolean;
+} | null;
 
 export type Table = {
   name: string;
   theme: string;
-  sortOrder?: SortOrder;
+  sortOrder: SortOrder | undefined;
   fields: TableField[];
 };
 
@@ -108,6 +106,10 @@ export type IFrameToWidgetMessage =
       payloadType: WidgetToIFrameShowUIMessage["type"];
       width: number;
       height: number;
+    }
+  | {
+      type: "UPDATE_SORT_ORDER";
+      sortOrder: SortOrder;
     }
   | {
       type: "UPDATE_SCHEMA";
