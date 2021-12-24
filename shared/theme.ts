@@ -6,7 +6,7 @@ export type Theme = {
   LIGHT: string;
 };
 
-const themes: Record<string, Theme> = {
+export const themes: Record<string, Theme> = {
   blue: {
     name: "blue",
     PRIMARY: "#006B97",

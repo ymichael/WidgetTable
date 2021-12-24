@@ -8,7 +8,7 @@ import {
   WidgetToIFramePostMessage,
   WidgetToIFrameShowUIMessage,
 } from "../shared/types";
-import { Theme, getTheme, getRandomTheme } from "../shared/theme";
+import { themes, Theme, getTheme, getRandomTheme } from "../shared/theme";
 import { Template, TEMPLATES, DEFAULT_SCHEMA } from "./constants";
 import {
   editSvg,
@@ -596,29 +596,44 @@ function Table() {
   });
 
   usePropertyMenu(
-    showInitialState
-      ? []
-      : [
-          {
-            itemType: "action",
-            tooltip: "Insert Row",
-            propertyName: "newRow",
-            icon: plusSvg,
-          },
-          {
-            itemType: "action",
-            tooltip: "Edit Table",
-            propertyName: "editTable",
-            icon: editSvg,
-          },
-          {
-            itemType: "action",
-            tooltip: "Delete All",
-            propertyName: "deleteAllRows",
-            icon: trashCanSvg,
-          },
-        ],
-    ({ propertyName }) => {
+    [
+      ...(showInitialState
+        ? []
+        : [
+            {
+              itemType: "action",
+              tooltip: "Insert Row",
+              propertyName: "newRow",
+              icon: plusSvg,
+            },
+            {
+              itemType: "action",
+              tooltip: "Edit Table",
+              propertyName: "editTable",
+              icon: editSvg,
+            },
+            {
+              itemType: "action",
+              tooltip: "Delete All",
+              propertyName: "deleteAllRows",
+              icon: trashCanSvg,
+            },
+            { itemType: "separator" },
+          ]),
+      {
+        itemType: "color-selector",
+        tooltip: "Theme",
+        propertyName: "setTheme",
+        selectedOption: theme.PRIMARY,
+        options: Object.values(themes).map((t) => {
+          return {
+            tooltip: t.name,
+            option: t.PRIMARY,
+          };
+        }),
+      },
+    ] as WidgetPropertyMenuItem[],
+    ({ propertyName, propertyValue }) => {
       if (propertyName === "editSchema") {
         return showUIWithPayload({ type: "EDIT_SCHEMA", table });
       } else if (propertyName === "editTable") {
@@ -627,6 +642,13 @@ function Table() {
           table,
           rows: syncedTable.getRowsSorted(),
         });
+      } else if (propertyName === "setTheme") {
+        const selectedTheme = Object.values(themes).find(
+          (t) => t.PRIMARY === propertyValue
+        );
+        if (selectedTheme) {
+          syncedTable.setTheme(selectedTheme.name);
+        }
       } else if (propertyName === "newRow") {
         return showUIWithPayload({ type: "NEW_ROW", table });
       } else if (propertyName === "deleteAllRows") {
