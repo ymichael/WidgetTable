@@ -54,7 +54,7 @@ function getInitialSizeForPayload({
       );
       return [500 + fieldWidthSum, 600];
     default:
-      return [400, Math.min(200 + table.fields.length * 100, 500)];
+      return [400, Math.min(100 + table.fields.length * 60, 300)];
   }
 }
 
@@ -81,10 +81,8 @@ const genIFrameToWidgetMessageHandler = (syncedTable: SyncedTable) => {
   return (msg: IFrameToWidgetMessage) => {
     switch (msg.type) {
       case "RESIZE":
-        if (msg.payloadType === "FULL_TABLE") {
-          figma.ui.resize(msg.width, Math.max(600, Math.round(msg.height)));
-        } else {
-          figma.ui.resize(msg.width, Math.min(600, Math.round(msg.height)));
+        if (msg.payloadType === "NEW_ROW" || msg.payloadType === "EDIT_ROW") {
+          figma.ui.resize(400, Math.min(600, Math.round(msg.height)));
         }
         break;
       case "NEW_ROW":
