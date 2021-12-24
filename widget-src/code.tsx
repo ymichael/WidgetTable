@@ -561,36 +561,6 @@ function Table() {
     }
 
     figma.ui.onmessage = genIFrameToWidgetMessageHandler(syncedTable);
-    const timer = setInterval(() => {
-      if (rowsVersion !== syncedTable.rowsVersion) {
-        rowsVersion = syncedTable.rowsVersion;
-        const updateRowsMsg: WidgetToIFramePostMessage = {
-          type: "UPDATE_ROWS",
-          rows: syncedTable.getRowsSorted(),
-        };
-        figma.ui.postMessage(updateRowsMsg);
-        syncedTable.forceRerender();
-      }
-      if (tableTitle !== syncedTable.getTitle()) {
-        tableTitle = syncedTable.getTitle();
-        const updateTitleMsg: WidgetToIFramePostMessage = {
-          type: "UPDATE_TITLE",
-          title: tableTitle,
-        };
-        figma.ui.postMessage(updateTitleMsg);
-        syncedTable.forceRerender();
-      }
-      if (schemaVersion !== syncedTable.schemaVersion) {
-        schemaVersion = syncedTable.schemaVersion;
-        const updateSchemaMsg: WidgetToIFramePostMessage = {
-          type: "UPDATE_SCHEMA",
-          fields: syncedTable.schema,
-        };
-        figma.ui.postMessage(updateSchemaMsg);
-        syncedTable.forceRerender();
-      }
-    }, 1000);
-    return () => clearInterval(timer);
   });
 
   usePropertyMenu(
