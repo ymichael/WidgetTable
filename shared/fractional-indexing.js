@@ -207,7 +207,7 @@ function decrementInteger(x, digits) {
  * @param {string=} digits
  * @return {string}
  */
-export function generateKeyBetween(a, b, digits = BASE_62_DIGITS) {
+function generateKeyBetween(a, b, digits = BASE_62_DIGITS) {
   if (a !== null) {
     validateOrderKey(a);
   }
@@ -261,4 +261,7 @@ export function generateKeyBetween(a, b, digits = BASE_62_DIGITS) {
   return ia + midpoint(fa, null, digits);
 }
 
-export default generateKeyBetween;
+export default (a, b = null) => {
+  // Randomize with a random suffix to avoid collisions
+  return generateKeyBetween(a, b) + String(Math.random()).slice(-6);
+};
