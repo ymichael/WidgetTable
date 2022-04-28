@@ -86,8 +86,8 @@ export function sortRows(
       case FieldType.NUMBER:
       case FieldType.CURRENCY:
       case FieldType.VOTE:
-        aVal = aVal || 0;
-        bVal = bVal || 0;
+        aVal = +aVal || 0;
+        bVal = +bVal || 0;
         break;
       case FieldType.CHECKBOX:
         aVal = !!aVal;
